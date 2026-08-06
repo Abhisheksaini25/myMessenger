@@ -1,0 +1,68 @@
+<div class="chat-window-wrapper">
+    <!-- Chat Window Header -->
+    <header class="chat-header">
+        <div class="header-user-info">
+            {% if active_user.profile_photo %}
+                <img src="{{ active_user.profile_photo.url }}" alt="{{ active_user.display_name }}" class="avatar">
+            {% else %}
+                <div class="avatar fallback-avatar">{{ active_user.display_name|slice:":2"|upper }}</div>
+            {% endif %}
+            <div class="header-text-details">
+                <span class="active-user-name">{{ active_user.display_name }}</span>
+                <span class="active-user-status">
+                    {% if active_user.last_seen %}
+                        Last seen {{ active_user.last_seen|date:"M d, H:i" }}
+                    {% else %}
+                        Last seen: never
+                    {% endif %}
+                    • ID: <code>{{ active_user.user_id }}</code>
+                </span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <!-- Typing Indicator Placeholder -->
+            <div class="typing-indicator-placeholder" id="typing-placeholder" title="Typing indicator placeholder">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Message List Area (Auto-refreshes every 3s via HTMX) -->
+    <div id="messages-scroll-area" class="messages-scroll-area">
+        <div id="messages-container"
+             class="messages-container"
+             hx-get="/dashboard/chat/{{ active_user.user_id }}/messages/"
+             hx-trigger="every 3s"
+             hx-swap="innerHTML">
+            {% include "dashboard/partials/message_list.html" %}
+        </div>
+    </div>
+
+    <!-- Sticky Bottom Input Form -->
+    <footer class="chat-footer">
+        <form id="message-send-form"
+              class="message-send-form"
+              hx-post="/dashboard/chat/{{ active_user.user_id }}/send/"
+              hx-target="#messages-container"
+              hx-swap="innerHTML"
+              hx-on::after-request="this.reset(); scrollToBottom();">
+            {% csrf_token %}
+            <div class="input-bar-wrapper">
+                <textarea id="message-input-textarea"
+                          name="text"
+                          rows="1"
+                          placeholder="Type a message (Enter to send, Shift+Enter for newline)"
+                          required
+                          class="message-input"></textarea>
+                <button type="submit" class="send-button" title="Send Message">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </footer>
+</div>

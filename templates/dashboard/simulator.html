@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friend POV Simulator — Private Messenger</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        body {
+            background-color: #0b141a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .sim-header-bar {
+            width: 100%;
+            max-width: 440px;
+            background: #202c33;
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .sim-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #00a884;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .friend-selector {
+            background: #111b21;
+            color: #e9edef;
+            border: 1px solid #2a3942;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Smartphone Frame Mockup */
+        .phone-frame {
+            width: 400px;
+            height: 740px;
+            background: #111b21;
+            border-radius: 36px;
+            border: 10px solid #2a3942;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Phone Top Notch */
+        .phone-notch {
+            width: 130px;
+            height: 18px;
+            background: #2a3942;
+            margin: 0 auto;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            z-index: 100;
+        }
+
+        .mobile-header {
+            height: 55px;
+            background: #202c33;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            border-bottom: 1px solid #222d34;
+        }
+
+        .mobile-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00a884, #005c4b);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .mobile-header-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mobile-header-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #e9edef;
+        }
+
+        .mobile-header-sub {
+            font-size: 11px;
+            color: #8696a0;
+        }
+
+        .mobile-chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-color: #0b141a;
+            background-image: radial-gradient(rgba(34, 45, 52, 0.35) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        .mob-msg {
+            max-width: 78%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            line-height: 1.4;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .mob-msg.outgoing {
+            align-self: flex-end;
+            background-color: #005c4b;
+            color: #e9edef;
+            border-top-right-radius: 2px;
+        }
+
+        .mob-msg.incoming {
+            align-self: flex-start;
+            background-color: #202c33;
+            color: #e9edef;
+            border-top-left-radius: 2px;
+        }
+
+        .mob-meta {
+            font-size: 10px;
+            color: rgba(255,255,255,0.55);
+            text-align: right;
+            margin-top: 2px;
+        }
+
+        .mobile-footer {
+            padding: 10px;
+            background: #202c33;
+            border-top: 1px solid #222d34;
+        }
+
+        .mobile-input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #2a3942;
+            border-radius: 20px;
+            padding: 4px 12px;
+        }
+
+        .mobile-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: #e9edef;
+            font-size: 14px;
+            outline: none;
+            padding: 6px 0;
+        }
+
+        .mobile-send-btn {
+            background: none;
+            border: none;
+            color: #00a884;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .nav-back-link {
+            color: #8696a0;
+            text-decoration: none;
+            font-size: 13px;
+            margin-top: 16px;
+        }
+        .nav-back-link:hover { color: #00a884; }
+    </style>
+</head>
+<body>
+
+    <div class="sim-header-bar">
+        <div class="sim-title">
+            <span>📱</span> Friend POV Simulator
+        </div>
+        <select id="friendSelect" class="friend-selector" onchange="switchFriend()">
+            {% for friend in friends %}
+            <option value="{{ friend.user_id }}" data-key="{{ friend.api_key }}" {% if friend.user_id == active_friend.user_id %}selected{% endif %}>
+                {{ friend.display_name }} ({{ friend.user_id }})
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Phone Frame -->
+    <div class="phone-frame">
+        <div class="phone-notch"></div>
+
+        <div class="mobile-header">
+            <div class="mobile-avatar">AD</div>
+            <div class="mobile-header-text">
+                <span class="mobile-header-name">Admin</span>
+                <span class="mobile-header-sub">Online • Private Channel</span>
+            </div>
+        </div>
+
+        <div id="mobileChatBody" class="mobile-chat-body">
+            <!-- Messages rendered via JS using headers -->
+        </div>
+
+        <div class="mobile-footer">
+            <form onsubmit="sendMessage(event)" class="mobile-input-row">
+                <input type="text" id="mobileInput" class="mobile-input" placeholder="Message Admin..." required autocomplete="off">
+                <button type="submit" class="mobile-send-btn">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <a href="/dashboard/" class="nav-back-link">← Back to Admin Dashboard</a>
+
+    <script>
+        let currentUserId = "{{ active_friend.user_id }}";
+        let currentApiKey = "{{ active_friend.api_key }}";
+
+        function switchFriend() {
+            const select = document.getElementById('friendSelect');
+            const option = select.options[select.selectedIndex];
+            currentUserId = option.value;
+            currentApiKey = option.getAttribute('data-key');
+            loadMessages();
+        }
+
+        async function loadMessages() {
+            try {
+                // Call /api/messages/seen/ to mark seen
+                fetch('/api/messages/seen/', {
+                    method: 'POST',
+                    headers: { 'X-USER-ID': currentUserId, 'X-API-KEY': currentApiKey }
+                });
+
+                const res = await fetch('/api/messages/', {
+                    headers: {
+                        'X-USER-ID': currentUserId,
+                        'X-API-KEY': currentApiKey
+                    }
+                });
+                if (!res.ok) throw new Error('Auth failed');
+                const messages = await res.json();
+                renderMessages(messages);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('mobileChatBody').innerHTML = '<div style="color:#f44336; text-align:center; margin-top:20px;">Auth Failed</div>';
+            }
+        }
+
+        function renderMessages(messages) {
+            const container = document.getElementById('mobileChatBody');
+            container.innerHTML = messages.map(m => {
+                const isMe = (m.sender === currentUserId);
+                const time = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return `
+                    <div class="mob-msg ${isMe ? 'outgoing' : 'incoming'}">
+                        <div>${escapeHtml(m.text)}</div>
+                        <div class="mob-meta">${time}</div>
+                    </div>
+                `;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage(e) {
+            e.preventDefault();
+            const input = document.getElementById('mobileInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+
+            try {
+                await fetch('/api/messages/send/', {
+                    method: 'POST',
+                    headers: {
+                        'X-USER-ID': currentUserId,
+                        'X-API-KEY': currentApiKey,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+                loadMessages();
+            } catch (err) {
+                alert('Error sending message');
+            }
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+
+        // Initial load & poll every 3 seconds (similar to mobile app)
+        loadMessages();
+        setInterval(loadMessages, 3000);
+    </script>
+</body>
+</html>

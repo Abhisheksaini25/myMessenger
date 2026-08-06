@@ -1,0 +1,54 @@
+{% if summaries %}
+    {% for item in summaries %}
+    <div class="conversation-item {% if item.unread_count > 0 %}has-unread{% endif %}"
+         hx-get="/dashboard/chat/{{ item.user.user_id }}/"
+         hx-target="#chat-window-container"
+         hx-swap="innerHTML"
+         role="button"
+         tabindex="0">
+        <div class="avatar-wrapper">
+            {% if item.user.profile_photo %}
+                <img src="{{ item.user.profile_photo.url }}" alt="{{ item.user.display_name }}" class="avatar">
+            {% else %}
+                <div class="avatar fallback-avatar">{{ item.user.display_name|slice:":2"|upper }}</div>
+            {% endif %}
+            <span class="status-dot {% if item.user.is_active %}online{% else %}offline{% endif %}"></span>
+        </div>
+
+        <div class="conversation-details">
+            <div class="conversation-top">
+                <span class="friend-name">{{ item.user.display_name }}</span>
+                <span class="message-time">
+                    {% if item.last_message %}
+                        {{ item.last_message.created_at|date:"H:i" }}
+                    {% else %}
+                        {{ item.user.created_at|date:"M d" }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="conversation-bottom">
+                <span class="last-message-preview">
+                    {% if item.last_message %}
+                        {% if item.last_message.sender.user_id == "admin" %}
+                            <span class="preview-prefix">You: </span>
+                        {% endif %}
+                        {{ item.last_message.text|truncatechars:36 }}
+                    {% else %}
+                        <em class="no-messages-text">No messages yet</em>
+                    {% endif %}
+                </span>
+
+                {% if item.unread_count > 0 %}
+                <span class="unread-badge">{{ item.unread_count }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-sidebar-state">
+        <p>No friends found matching "{{ search_query }}"</p>
+        <small>Add ChatUser records in the Django Admin panel.</small>
+    </div>
+{% endif %}

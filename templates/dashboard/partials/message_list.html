@@ -1,0 +1,50 @@
+{% if messages %}
+    <div class="message-history-list">
+        {% for message in messages %}
+        <div class="message-bubble-wrapper {% if message.sender.user_id == 'admin' %}outgoing-wrapper{% else %}incoming-wrapper{% endif %}">
+            <div class="message-bubble {% if message.sender.user_id == 'admin' %}outgoing{% else %}incoming{% endif %}">
+                {% if message.image %}
+                <div class="message-image-container">
+                    <img src="{{ message.image.url }}" alt="Attachment" class="message-image">
+                </div>
+                {% endif %}
+
+                {% if message.text %}
+                <div class="message-text">
+                    {{ message.text|linebreaksbr }}
+                </div>
+                {% endif %}
+
+                <div class="message-meta">
+                    <span class="timestamp">{{ message.created_at|date:"H:i" }}</span>
+                    {% if message.sender.user_id == 'admin' %}
+                    <span class="status-ticks" title="{% if message.seen %}Seen{% elif message.delivered %}Delivered{% else %}Sent{% endif %}">
+                        {% if message.seen %}
+                        <!-- Double check cyan (Seen) -->
+                        <svg viewBox="0 0 16 15" width="16" height="15" fill="#53bdeb">
+                            <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"/>
+                        </svg>
+                        {% elif message.delivered %}
+                        <!-- Double check grey (Delivered) -->
+                        <svg viewBox="0 0 16 15" width="16" height="15" fill="#8696a0">
+                            <path d="M15.01 3.316l-.478-.372a.365.365 0 0 0-.51.063L8.666 9.879a.32.32 0 0 1-.484.033l-.358-.325a.319.319 0 0 0-.484.032l-.378.483a.418.418 0 0 0 .036.541l1.32 1.266c.143.14.361.125.484-.033l6.272-8.048a.366.366 0 0 0-.064-.512zm-4.1 0l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"/>
+                        </svg>
+                        {% else %}
+                        <!-- Single check grey (Sent) -->
+                        <svg viewBox="0 0 16 15" width="16" height="15" fill="#8696a0">
+                            <path d="M10.91 3.316l-.478-.372a.365.365 0 0 0-.51.063L4.566 9.879a.32.32 0 0 1-.484.033L1.891 7.769a.366.366 0 0 0-.515.006l-.423.433a.364.364 0 0 0 .006.514l3.258 3.185c.143.14.361.125.484-.033l6.272-8.048a.365.365 0 0 0-.063-.51z"/>
+                        </svg>
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-messages-banner">
+        <span class="lock-icon">🔒</span>
+        <p>Messages to this chat and calls are secured with end-to-end API headers. Send a message to begin conversation.</p>
+    </div>
+{% endif %}
