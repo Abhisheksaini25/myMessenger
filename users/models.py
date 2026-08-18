@@ -46,6 +46,7 @@ class ChatUser(models.Model):
         blank=True,
         help_text="Optional profile photo.",
     )
+    fcm_token = models.TextField(blank=True, null=True)
 
     class Meta:
         ordering = ["display_name"]

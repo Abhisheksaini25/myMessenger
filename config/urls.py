@@ -11,6 +11,8 @@ urlpatterns = [
     path("api/ping/", include("users.api_urls")),
     path("dashboard/", include("chat.dashboard_urls")),
     path("", RedirectView.as_view(url="/dashboard/", permanent=False), name="root_redirect"),
+
+    path("api/", include("users.api_urls")),
 ]
 
 if settings.DEBUG:
