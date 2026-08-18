@@ -18,6 +18,10 @@ def save_fcm_token(request):
 
     token = request.data.get("token")
 
+    print("USER_ID:", user_id)
+    print("API_KEY:", api_key)
+    print("BODY:", request.data)
+
     try:
         user = ChatUser.objects.get(
             name=user_id,
