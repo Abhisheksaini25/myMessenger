@@ -62,3 +62,15 @@ class UsersAppTests(APITestCase):
 
         self.friend.refresh_from_db()
         self.assertIsNotNone(self.friend.last_seen)
+
+    def test_save_fcm_token_success(self):
+        """Verify successful FCM token update."""
+        url = reverse("api_save_fcm_token")
+        self.client.credentials(HTTP_X_USER_ID="friend1", HTTP_X_API_KEY="secret-key-alice")
+        response = self.client.post(url, {"token": "fcm-sample-token-123456"}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["status"], "token saved")
+
+        self.friend.refresh_from_db()
+        self.assertEqual(self.friend.fcm_token, "fcm-sample-token-123456")
+

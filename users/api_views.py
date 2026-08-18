@@ -4,36 +4,35 @@ REST API views for the users app.
 Includes the /api/ping/ endpoint for updating last_seen.
 """
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import ChatUser
 from users.services import update_last_seen
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 
-@api_view(["POST"])
-def save_fcm_token(request):
-    user_id = request.headers.get("X-USER-ID")
-    api_key = request.headers.get("X-API-KEY")
+class SaveFCMTokenView(APIView):
+    """
+    POST /api/save-token/
 
-    token = request.data.get("token")
+    Saves or updates FCM push notification token for authenticated request.chat_user.
+    """
 
-    print("USER_ID:", user_id)
-    print("API_KEY:", api_key)
-    print("BODY:", request.data)
+    def post(self, request, *args, **kwargs) -> Response:
+        token = request.data.get("token")
+        if not token:
+            return Response(
+                {"error": "Field 'token' is required in request body."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    try:
-        user = ChatUser.objects.get(
-            name=user_id,
-            api_key=api_key
+        chat_user = request.chat_user
+        chat_user.fcm_token = token
+        chat_user.save(update_fields=["fcm_token", "updated_at"])
+
+        return Response(
+            {"status": "token saved", "user_id": chat_user.user_id},
+            status=status.HTTP_200_OK,
         )
-    except ChatUser.DoesNotExist:
-        return Response({"error": "Invalid user"}, status=403)
-
-    user.fcm_token = token
-    user.save()
-
-    return Response({"status": "token saved"})
 
 
 class PingView(APIView):
