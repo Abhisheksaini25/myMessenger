@@ -6,6 +6,7 @@ Includes the /api/ping/ endpoint for updating last_seen.
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from backend.users.models import ChatUser
 from users.services import update_last_seen
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -18,11 +19,11 @@ def save_fcm_token(request):
     token = request.data.get("token")
 
     try:
-        user = Friend.objects.get(
+        user = ChatUser.objects.get(
             name=user_id,
             api_key=api_key
         )
-    except Friend.DoesNotExist:
+    except ChatUser.DoesNotExist:
         return Response({"error": "Invalid user"}, status=403)
 
     user.fcm_token = token
