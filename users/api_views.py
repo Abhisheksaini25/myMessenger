@@ -6,7 +6,7 @@ Includes the /api/ping/ endpoint for updating last_seen.
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from backend.users.models import ChatUser
+from users.models import ChatUser
 from users.services import update_last_seen
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
