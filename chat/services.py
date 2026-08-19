@@ -4,11 +4,15 @@ Service functions for chat message operations.
 Encapsulates database queries and messaging rules for both REST API
 and HTMX Dashboard.
 """
+import logging
 from typing import List, Dict, Any, Optional
 from django.db.models import Q, QuerySet
 from chat.models import Message, MessageType
 from users.models import ChatUser
 from users.services import get_active_friends
+from utils.firebase import send_push_notification
+
+logger = logging.getLogger(__name__)
 
 
 def get_user_conversation(
@@ -51,6 +55,7 @@ def send_message_to_admin(
 ) -> Message:
     """
     Create and save a message sent from a friend ChatUser to the admin.
+    Sends push notification to admin's device if FCM token exists.
     """
     admin_user = ChatUser.get_admin_user()
     message = Message.objects.create(
@@ -60,6 +65,15 @@ def send_message_to_admin(
         message_type=message_type,
         delivered=True,  # Delivered to backend
     )
+
+    # Push notification to admin
+    if admin_user.fcm_token:
+        send_push_notification(
+            admin_user.fcm_token,
+            f"New message from {sender.display_name}",
+            text,
+        )
+
     return message
 
 
@@ -70,6 +84,7 @@ def send_message_from_admin(
 ) -> Message:
     """
     Create and save a message sent from the admin to a friend ChatUser.
+    Sends push notification to the friend's device if FCM token exists.
     """
     admin_user = ChatUser.get_admin_user()
     message = Message.objects.create(
@@ -79,6 +94,15 @@ def send_message_from_admin(
         message_type=message_type,
         delivered=True,
     )
+
+    # Push notification to friend's Android APK
+    if receiver.fcm_token:
+        send_push_notification(
+            receiver.fcm_token,
+            "New Message",
+            text,
+        )
+
     return message
 
 
