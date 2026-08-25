@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # Third-party apps
+    "corsheaders",
     "rest_framework",
     "django_htmx",
     # Custom apps
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -178,6 +180,17 @@ REST_FRAMEWORK = {
         "users.permissions.IsAndroidAuthenticated",
     ],
 }
+
+
+# CORS Configuration
+from corsheaders.defaults import default_headers
+
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-user-id",
+    "x-api-key",
+]
+
 
 if not DEBUG:
 
