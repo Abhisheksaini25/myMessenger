@@ -5,6 +5,7 @@ Initializes Firebase Admin SDK and provides a helper function
 to send push notifications to Android APK clients.
 """
 import os
+import json
 import logging
 from pathlib import Path
 
@@ -22,8 +23,20 @@ FIREBASE_CREDENTIALS_PATH = os.environ.get(
 
 # Initialize Firebase Admin SDK (only once)
 if not firebase_admin._apps:
-    cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
-    firebase_admin.initialize_app(cred)
+    firebase_json_env = os.environ.get("FIREBASE_CREDENTIALS_JSON")
+    
+    if firebase_json_env:
+        # Load directly from Vercel Environment Variable
+        cred_dict = json.loads(firebase_json_env)
+        cred = credentials.Certificate(cred_dict)
+    elif os.path.exists(FIREBASE_CREDENTIALS_PATH):
+        # Fallback to local file path (for local dev & Render)
+        cred = credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+    else:
+        logger.warning("No Firebase credentials found.")
+        cred = None
+    if cred:
+        firebase_admin.initialize_app(cred)
 
 
 def send_push_notification(token: str, title: str, body: str) -> bool:
