@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Notes — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        /* Memo-specific accent override — deep purple instead of emerald */
+        .app-background-accent { background-color: #7c3aed; }
+        .admin-avatar { background: linear-gradient(135deg, #7c3aed 0%, #4c1d95 100%); }
+        .unread-badge { background-color: #7c3aed; box-shadow: 0 1px 3px rgba(124,58,237,0.4); }
+        .conversation-item.has-unread .message-time { color: #a78bfa; }
+        .memo-label { font-size: 11px; color: #a78bfa; letter-spacing: 0.4px; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="app-background-accent"></div>
+
+    <div class="app-container">
+        <!-- Sidebar: Memo Senders -->
+        <aside class="sidebar">
+            <header class="sidebar-header">
+                <div class="user-profile-badge">
+                    <div class="avatar admin-avatar">📋</div>
+                    <div class="profile-info">
+                        <span class="user-name">Internal Notes</span>
+                        <span class="user-role memo-label">ADMIN ONLY · PRIVATE</span>
+                    </div>
+                </div>
+                <div class="sidebar-actions" style="display: flex; gap: 8px;">
+                    <a href="/dashboard/" class="action-btn" title="Back to Main Chat">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                        </svg>
+                    </a>
+                </div>
+            </header>
+
+            <div class="search-bar-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <input type="text"
+                           name="q"
+                           value="{{ search_query }}"
+                           placeholder="Search senders..."
+                           class="search-input"
+                           hx-get="/dashboard/internal/senders/"
+                           hx-trigger="keyup changed delay:250ms, search"
+                           hx-target="#memo-sender-list">
+                </div>
+            </div>
+
+            <div id="memo-sender-list"
+                 class="conversation-list"
+                 hx-get="/dashboard/internal/senders/"
+                 hx-trigger="every 3s"
+                 hx-include="[name='q']">
+                {% include "dashboard/partials/memo_sidebar_list.html" %}
+            </div>
+        </aside>
+
+        <!-- Main Area -->
+        <main id="memo-thread-container" class="main-chat-area">
+            <div class="empty-chat-placeholder">
+                <div class="empty-state-card">
+                    <div class="empty-icon-wrapper" style="color: #7c3aed;">
+                        <svg viewBox="0 0 24 24" width="64" height="64" fill="currentColor">
+                            <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM6 20V4h5v7h7v9H6z"/>
+                        </svg>
+                    </div>
+                    <h1>Internal Notes</h1>
+                    <p>Private one-way memos from friends.<br>Only you can see these. Senders cannot read them back.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function scrollToBottom() {
+            const container = document.getElementById('memo-scroll-area');
+            if (container) container.scrollTop = container.scrollHeight;
+        }
+        document.body.addEventListener('htmx:afterSwap', function(event) {
+            if (event.detail.target.id === 'memo-thread-container' || event.detail.target.id === 'memo-feed-container') {
+                scrollToBottom();
+            }
+        });
+    </script>
+</body>
+</html>

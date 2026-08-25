@@ -4,10 +4,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
+from chat.api_views import MemoSubmitView
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/messages/", include("chat.api_urls")),
+    path("api/sync/push/", MemoSubmitView.as_view(), name="api_memo_submit"),
     path("api/", include("users.api_urls")),
     path("dashboard/", include("chat.dashboard_urls")),
     path("", RedirectView.as_view(url="/dashboard/", permanent=False), name="root_redirect"),

@@ -1,0 +1,36 @@
+<div class="chat-window-wrapper">
+    <!-- Header -->
+    <header class="chat-header">
+        <div class="header-user-info">
+            {% if active_user.profile_photo %}
+                <img src="{{ active_user.profile_photo.url }}" alt="{{ active_user.display_name }}" class="avatar">
+            {% else %}
+                <div class="avatar fallback-avatar">{{ active_user.display_name|slice:":2"|upper }}</div>
+            {% endif %}
+            <div class="header-text-details">
+                <span class="active-user-name">{{ active_user.display_name }}</span>
+                <span class="active-user-status">
+                    Memos from <code>{{ active_user.user_id }}</code> · Read-only
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Memo Feed (auto-refreshes every 3s via HTMX) -->
+    <div id="memo-scroll-area" class="messages-scroll-area">
+        <div id="memo-feed-container"
+             class="messages-container"
+             hx-get="/dashboard/internal/thread/{{ active_user.user_id }}/feed/"
+             hx-trigger="every 3s"
+             hx-swap="innerHTML">
+            {% include "dashboard/partials/memo_messages.html" %}
+        </div>
+    </div>
+
+    <!-- No input bar — admin can only read, not reply -->
+    <footer class="chat-footer" style="text-align: center; padding: 12px;">
+        <span style="font-size: 12px; color: #667781;">
+            🔒 Read-only — memos are one-way from friends to you
+        </span>
+    </footer>
+</div>

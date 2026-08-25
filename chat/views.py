@@ -158,3 +158,87 @@ def friend_simulator_view(request: HttpRequest, user_id: Optional[str] = None) -
     }
     return render(request, "dashboard/simulator.html", context)
 
+
+# ─────────────────────────────────────────────────────────────
+# Memo Dashboard Views (admin-only private channel)
+# ─────────────────────────────────────────────────────────────
+
+@admin_required
+def memo_dashboard_view(request: HttpRequest) -> HttpResponse:
+    """
+    GET /dashboard/internal/
+
+    Render the memo dashboard — admin-only inbox for private one-way notes.
+    """
+    from chat.services import get_memo_summaries
+
+    search_query = request.GET.get("q", "").strip()
+    summaries = get_memo_summaries(search_query=search_query)
+
+    context = {
+        "summaries": summaries,
+        "search_query": search_query,
+    }
+    return render(request, "dashboard/memo_index.html", context)
+
+
+@admin_required
+def memo_sidebar_view(request: HttpRequest) -> HttpResponse:
+    """
+    GET /dashboard/internal/senders/
+
+    HTMX partial for memo sender sidebar list with 3s auto-refresh.
+    """
+    from chat.services import get_memo_summaries
+
+    search_query = request.GET.get("q", "").strip()
+    summaries = get_memo_summaries(search_query=search_query)
+
+    context = {
+        "summaries": summaries,
+        "search_query": search_query,
+    }
+    return render(request, "dashboard/partials/memo_sidebar_list.html", context)
+
+
+@admin_required
+def memo_thread_view(request: HttpRequest, user_id: str) -> HttpResponse:
+    """
+    GET /dashboard/internal/thread/<user_id>/
+
+    HTMX partial for the full memo thread from a specific sender.
+    Marks all memos from this sender as seen.
+    """
+    from chat.services import get_memos_for_user, mark_memos_seen
+
+    friend = get_object_or_404(ChatUser, user_id=user_id, is_active=True)
+    mark_memos_seen(friend)
+    memos = get_memos_for_user(friend)
+
+    context = {
+        "active_user": friend,
+        "memos": memos,
+    }
+    return render(request, "dashboard/partials/memo_thread.html", context)
+
+
+@admin_required
+def memo_messages_view(request: HttpRequest, user_id: str) -> HttpResponse:
+    """
+    GET /dashboard/internal/thread/<user_id>/feed/
+
+    HTMX partial for memo message list — polled every 3s.
+    """
+    from chat.services import get_memos_for_user, mark_memos_seen
+
+    friend = get_object_or_404(ChatUser, user_id=user_id, is_active=True)
+    mark_memos_seen(friend)
+    memos = get_memos_for_user(friend)
+
+    context = {
+        "active_user": friend,
+        "memos": memos,
+    }
+    return render(request, "dashboard/partials/memo_messages.html", context)
+
+

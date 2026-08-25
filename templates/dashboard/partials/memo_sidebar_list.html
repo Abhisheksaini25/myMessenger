@@ -1,0 +1,47 @@
+{% if summaries %}
+    {% for item in summaries %}
+    <div class="conversation-item {% if item.unread_count > 0 %}has-unread{% endif %}"
+         hx-get="/dashboard/internal/thread/{{ item.user.user_id }}/"
+         hx-target="#memo-thread-container"
+         hx-swap="innerHTML"
+         role="button"
+         tabindex="0">
+        <div class="avatar-wrapper">
+            {% if item.user.profile_photo %}
+                <img src="{{ item.user.profile_photo.url }}" alt="{{ item.user.display_name }}" class="avatar">
+            {% else %}
+                <div class="avatar fallback-avatar">{{ item.user.display_name|slice:":2"|upper }}</div>
+            {% endif %}
+        </div>
+
+        <div class="conversation-details">
+            <div class="conversation-top">
+                <span class="friend-name">{{ item.user.display_name }}</span>
+                <span class="message-time">
+                    {% if item.last_memo %}
+                        {{ item.last_memo.created_at|date:"H:i" }}
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="conversation-bottom">
+                <span class="last-message-preview">
+                    {% if item.last_memo %}
+                        {{ item.last_memo.text|truncatechars:36 }}
+                    {% else %}
+                        <em class="no-messages-text">No memos yet</em>
+                    {% endif %}
+                </span>
+                {% if item.unread_count > 0 %}
+                <span class="unread-badge">{{ item.unread_count }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-sidebar-state">
+        <p>No memos received yet.</p>
+        <small>Memos will appear here when friends submit them.</small>
+    </div>
+{% endif %}

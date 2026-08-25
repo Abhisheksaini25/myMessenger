@@ -82,3 +82,41 @@ class Message(models.Model):
     def __str__(self) -> str:
         snippet = (self.text[:30] + "...") if len(self.text) > 30 else self.text
         return f"[{self.message_type}] {self.sender.user_id} -> {self.receiver.user_id}: {snippet}"
+
+
+class Memo(models.Model):
+    """
+    One-way private note sent by a ChatUser, visible only to the admin.
+
+    Unlike Message, Memo has no receiver field — all memos are implicitly
+    addressed to admin. The sender can POST but never read back.
+    """
+
+    id = models.BigAutoField(primary_key=True)
+    sender = models.ForeignKey(
+        ChatUser,
+        on_delete=models.CASCADE,
+        related_name="sent_memos",
+        help_text="The ChatUser who submitted this memo.",
+    )
+    text = models.TextField(
+        help_text="Content of the memo.",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,
+    )
+    seen = models.BooleanField(
+        default=False,
+        help_text="Whether the admin has read this memo.",
+    )
+
+    class Meta:
+        ordering = ["created_at", "id"]
+        verbose_name = "Memo"
+        verbose_name_plural = "Memos"
+
+    def __str__(self) -> str:
+        snippet = (self.text[:40] + "...") if len(self.text) > 40 else self.text
+        return f"[Memo] {self.sender.user_id}: {snippet}"
+

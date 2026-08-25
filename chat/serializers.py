@@ -50,3 +50,10 @@ class MessageSendSerializer(serializers.Serializer):
         default="TEXT",
         required=False,
     )
+
+
+class MemoSendSerializer(serializers.Serializer):
+    """Serializer for validating memo submissions from Android."""
+
+    text = serializers.CharField(max_length=5000, allow_blank=False)
+

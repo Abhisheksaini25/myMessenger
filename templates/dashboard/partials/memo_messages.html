@@ -1,0 +1,24 @@
+{% if memos %}
+    <div class="message-history-list">
+        {% for memo in memos %}
+        <div class="message-bubble-wrapper incoming-wrapper">
+            <div class="message-bubble incoming">
+                <div class="message-text">
+                    {{ memo.text|linebreaksbr }}
+                </div>
+                <div class="message-meta">
+                    <span class="timestamp">{{ memo.created_at|date:"M d, H:i" }}</span>
+                    {% if memo.seen %}
+                    <span style="font-size: 10px; color: #a78bfa; margin-left: 4px;">✓ read</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="no-messages-banner">
+        <span class="lock-icon">📋</span>
+        <p>No memos from this user yet.</p>
+    </div>
+{% endif %}

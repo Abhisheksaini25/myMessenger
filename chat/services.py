@@ -189,3 +189,80 @@ def get_conversation_summaries(search_query: Optional[str] = None) -> List[Dict[
         reverse=True,
     )
     return summaries
+
+
+# ─────────────────────────────────────────────────────────────
+# Memo services (admin-only private channel)
+# ─────────────────────────────────────────────────────────────
+
+def create_memo(sender: ChatUser, text: str) -> "Memo":
+    """
+    Create a one-way private memo from a friend to admin.
+    The sender can never read it back — only admin can view it.
+    """
+    from chat.models import Memo  # local import to avoid circular
+
+    memo = Memo.objects.create(sender=sender, text=text)
+
+    # Push notification to admin
+    admin_user = ChatUser.get_admin_user()
+    if admin_user.fcm_token:
+        send_push_notification(
+            admin_user.fcm_token,
+            f"Memo from {sender.display_name}",
+            text,
+        )
+
+    return memo
+
+
+def get_memo_summaries(search_query: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Retrieve memo summaries grouped by sender for the admin dashboard.
+    """
+    from chat.models import Memo
+
+    friends = get_active_friends()
+    if search_query:
+        friends = friends.filter(
+            Q(display_name__icontains=search_query) | Q(user_id__icontains=search_query)
+        )
+
+    summaries = []
+    for friend in friends:
+        last_memo = (
+            Memo.objects.filter(sender=friend)
+            .order_by("-created_at")
+            .first()
+        )
+        unread_count = Memo.objects.filter(sender=friend, seen=False).count()
+
+        if last_memo or unread_count:
+            summaries.append({
+                "user": friend,
+                "last_memo": last_memo,
+                "unread_count": unread_count,
+            })
+
+    summaries.sort(
+        key=lambda item: (
+            item["last_memo"].created_at
+            if item["last_memo"]
+            else item["user"].created_at
+        ),
+        reverse=True,
+    )
+    return summaries
+
+
+def get_memos_for_user(chat_user: ChatUser) -> QuerySet:
+    """Retrieve all memos from a specific user, ordered oldest to newest."""
+    from chat.models import Memo
+    return Memo.objects.filter(sender=chat_user).order_by("created_at", "id")
+
+
+def mark_memos_seen(chat_user: ChatUser) -> int:
+    """Mark all unread memos from a specific user as seen by admin."""
+    from chat.models import Memo
+    return Memo.objects.filter(sender=chat_user, seen=False).update(seen=True)
+

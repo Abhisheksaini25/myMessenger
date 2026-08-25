@@ -95,3 +95,29 @@ class MessageSeenView(APIView):
             {"status": "ok", "marked_seen": count},
             status=status.HTTP_200_OK,
         )
+
+
+class MemoSubmitView(APIView):
+    """
+    POST /api/sync/push/
+
+    Android user submits a private memo. Only admin can read it.
+    The user has no GET access — write-only.
+    """
+
+    def post(self, request, *args, **kwargs) -> Response:
+        from chat.serializers import MemoSendSerializer
+        from chat.services import create_memo
+
+        serializer = MemoSendSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        memo = create_memo(
+            sender=request.chat_user,
+            text=serializer.validated_data["text"],
+        )
+        return Response(
+            {"status": "ok", "id": memo.id},
+            status=status.HTTP_201_CREATED,
+        )
+
