@@ -100,7 +100,15 @@ class Memo(models.Model):
         help_text="The ChatUser who submitted this memo.",
     )
     text = models.TextField(
+        blank=True,
+        default="",
         help_text="Content of the memo.",
+    )
+    image = models.ImageField(
+        upload_to="memos/",
+        null=True,
+        blank=True,
+        help_text="Optional image attachment.",
     )
     created_at = models.DateTimeField(
         auto_now_add=True,

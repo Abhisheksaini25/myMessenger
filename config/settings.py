@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "rest_framework",
     "django_htmx",
+    "storages",
     # Custom apps
     "users.apps.UsersConfig",
     "chat.apps.ChatConfig",
@@ -151,9 +152,27 @@ STATICFILES_STORAGE = (
     "whitenoise.storage.CompressedManifestStaticFilesStorage"
 )
 
+# ──────────────────────────────────────────────────────────
+# Supabase Storage (S3-compatible) for media / file uploads
+# ──────────────────────────────────────────────────────────
+AWS_ACCESS_KEY_ID = os.environ.get("SUPABASE_STORAGE_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.environ.get("SUPABASE_STORAGE_SECRET_KEY")
+AWS_STORAGE_BUCKET_NAME = os.environ.get("SUPABASE_STORAGE_BUCKET", "memos")
+AWS_S3_ENDPOINT_URL = os.environ.get("SUPABASE_STORAGE_ENDPOINT")
+AWS_S3_REGION_NAME = os.environ.get("SUPABASE_STORAGE_REGION", "ap-southeast-1")
+AWS_DEFAULT_ACL = None
+AWS_QUERYSTRING_AUTH = False          # Public bucket — no signed URLs
+AWS_S3_FILE_OVERWRITE = False         # Don't silently overwrite same-name files
+
+_USE_S3 = bool(AWS_S3_ENDPOINT_URL and AWS_ACCESS_KEY_ID)
+
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": (
+            "storages.backends.s3boto3.S3Boto3Storage"
+            if _USE_S3
+            else "django.core.files.storage.FileSystemStorage"
+        ),
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",

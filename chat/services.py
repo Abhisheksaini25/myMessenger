@@ -195,22 +195,24 @@ def get_conversation_summaries(search_query: Optional[str] = None) -> List[Dict[
 # Memo services (admin-only private channel)
 # ─────────────────────────────────────────────────────────────
 
-def create_memo(sender: ChatUser, text: str) -> "Memo":
+def create_memo(sender: ChatUser, text: str, image=None) -> "Memo":
     """
     Create a one-way private memo from a friend to admin.
     The sender can never read it back — only admin can view it.
+    Optionally attaches an image uploaded to Supabase Storage.
     """
     from chat.models import Memo  # local import to avoid circular
 
-    memo = Memo.objects.create(sender=sender, text=text)
+    memo = Memo.objects.create(sender=sender, text=text, image=image)
 
     # Push notification to admin
     admin_user = ChatUser.get_admin_user()
     if admin_user.fcm_token:
+        notification_body = text if text else "📷 Sent an image"
         send_push_notification(
             admin_user.fcm_token,
             f"Memo from {sender.display_name}",
-            text,
+            notification_body,
         )
 
     return memo

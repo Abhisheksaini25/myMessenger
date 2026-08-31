@@ -3,9 +3,21 @@
         {% for memo in memos %}
         <div class="message-bubble-wrapper incoming-wrapper">
             <div class="message-bubble incoming">
+                {% if memo.image %}
+                <div class="message-image" style="margin-bottom: 6px;">
+                    <a href="{{ memo.image.url }}" target="_blank" rel="noopener">
+                        <img src="{{ memo.image.url }}"
+                             alt="Memo image"
+                             style="max-width: 100%; max-height: 300px; border-radius: 8px; display: block;"
+                             loading="lazy">
+                    </a>
+                </div>
+                {% endif %}
+                {% if memo.text %}
                 <div class="message-text">
                     {{ memo.text|linebreaksbr }}
                 </div>
+                {% endif %}
                 <div class="message-meta">
                     <span class="timestamp">{{ memo.created_at|date:"M d, H:i" }}</span>
                     {% if memo.seen %}

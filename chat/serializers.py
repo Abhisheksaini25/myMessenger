@@ -55,5 +55,18 @@ class MessageSendSerializer(serializers.Serializer):
 class MemoSendSerializer(serializers.Serializer):
     """Serializer for validating memo submissions from Android."""
 
-    text = serializers.CharField(max_length=5000, allow_blank=False)
+    text = serializers.CharField(
+        max_length=5000, required=False, allow_blank=True, default=""
+    )
+    image = serializers.ImageField(required=False, allow_null=True)
+
+    def validate(self, attrs):
+        """Ensure at least one of text or image is provided."""
+        text = attrs.get("text", "").strip()
+        image = attrs.get("image")
+        if not text and not image:
+            raise serializers.ValidationError(
+                "Either text or image (or both) must be provided."
+            )
+        return attrs
 

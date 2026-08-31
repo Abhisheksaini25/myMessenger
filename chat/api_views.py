@@ -114,7 +114,8 @@ class MemoSubmitView(APIView):
 
         memo = create_memo(
             sender=request.chat_user,
-            text=serializer.validated_data["text"],
+            text=serializer.validated_data.get("text", ""),
+            image=serializer.validated_data.get("image"),
         )
         return Response(
             {"status": "ok", "id": memo.id},
