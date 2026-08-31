@@ -164,6 +164,14 @@ AWS_DEFAULT_ACL = None
 AWS_QUERYSTRING_AUTH = False          # Public bucket — no signed URLs
 AWS_S3_FILE_OVERWRITE = False         # Don't silently overwrite same-name files
 
+# Build the public URL domain for Supabase Storage.
+# S3 endpoint:  https://<ref>.supabase.co/storage/v1/s3
+# Public URL:   https://<ref>.supabase.co/storage/v1/object/public/<bucket>
+# Setting AWS_S3_CUSTOM_DOMAIN makes django-storages generate the public URL format.
+if AWS_S3_ENDPOINT_URL:
+    _supabase_host = AWS_S3_ENDPOINT_URL.replace("https://", "").replace("/storage/v1/s3", "")
+    AWS_S3_CUSTOM_DOMAIN = f"{_supabase_host}/storage/v1/object/public/{AWS_STORAGE_BUCKET_NAME}"
+
 _USE_S3 = bool(AWS_S3_ENDPOINT_URL and AWS_ACCESS_KEY_ID)
 
 STORAGES = {
