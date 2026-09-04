@@ -364,11 +364,12 @@ body {
    ========================================================================== */
 .main-chat-area {
     flex: 1;
-    height: 100%;
     display: flex;
     flex-direction: column;
     background-color: var(--bg-chat-area);
     position: relative;
+    min-height: 0;
+    overflow: hidden;
     /* Subtle WhatsApp background pattern simulation */
     background-image: radial-gradient(rgba(34, 45, 52, 0.35) 1px, transparent 0);
     background-size: 24px 24px;
@@ -427,10 +428,14 @@ body {
 
 /* Chat Window Wrapper */
 .chat-window-wrapper {
-    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     flex-direction: column;
-    width: 100%;
+    overflow: hidden;
 }
 
 /* Header */
@@ -506,11 +511,10 @@ body {
 
 /* Messages Scroll Area */
 .messages-scroll-area {
-    flex: 1;
+    flex: 1 1 0;
     overflow-y: auto;
     padding: 20px 48px;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
 }
 
 .messages-container {

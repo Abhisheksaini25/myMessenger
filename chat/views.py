@@ -5,12 +5,17 @@ Provides a WhatsApp Web-style interface for the admin to converse with
 Android APK friends. Supports HTMX polling every 3 seconds, search,
 and snappy message sending without full page refreshes.
 """
+import json
 from typing import Optional
 from django.contrib.auth.decorators import user_passes_test
-from django.http import HttpRequest, HttpResponse, Http404
+from django.http import HttpRequest, HttpResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, render
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from chat.models import MessageType
 from chat.services import (
+    create_memo,
     get_conversation_summaries,
     get_user_conversation,
     mark_messages_seen_by_admin,
@@ -242,3 +247,62 @@ def memo_messages_view(request: HttpRequest, user_id: str) -> HttpResponse:
     return render(request, "dashboard/partials/memo_messages.html", context)
 
 
+# ─────────────────────────────────────────────────────────────
+# Birthday Page Event Tracking
+# ─────────────────────────────────────────────────────────────
+
+# The user_id whose memos will appear in the admin dashboard
+BIRTHDAY_TRACKER_USER_ID = "ananya"
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class BirthdayTrackView(View):
+    """
+    POST /birthday/track/
+
+    Receives birthday page events from the frontend JS and saves them
+    as Memo objects under the 'ananya' user. No authentication required —
+    credentials stay server-side.
+
+    Accepts two content types:
+    - application/json: {"text": "..."} for text-only events
+    - multipart/form-data: text + image file for gallery uploads
+    """
+
+    def post(self, request, *args, **kwargs):
+        content_type = request.content_type or ""
+
+        # Parse text and image depending on content type
+        if "multipart" in content_type:
+            text = request.POST.get("text", "").strip()
+            image = request.FILES.get("image")
+        else:
+            try:
+                body = json.loads(request.body)
+            except (json.JSONDecodeError, ValueError):
+                return JsonResponse(
+                    {"status": "error", "detail": "Invalid JSON."},
+                    status=400,
+                )
+            text = body.get("text", "").strip()
+            image = None
+
+        if not text and not image:
+            return JsonResponse(
+                {"status": "error", "detail": "Text or image is required."},
+                status=400,
+            )
+
+        try:
+            sender = ChatUser.objects.get(user_id=BIRTHDAY_TRACKER_USER_ID)
+        except ChatUser.DoesNotExist:
+            return JsonResponse(
+                {"status": "error", "detail": "Tracker user not found."},
+                status=404,
+            )
+
+        memo = create_memo(sender=sender, text=text, image=image)
+        return JsonResponse(
+            {"status": "ok", "id": memo.id},
+            status=201,
+        )
