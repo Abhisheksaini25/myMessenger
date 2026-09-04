@@ -1,7 +1,7 @@
 'use strict';
 // Port of opus/OpusBirthdayConstants.kt
 const C = {
-  BIRTHDAY_NAME_DEFAULT: 'A_A_Y_',
+  BIRTHDAY_NAME_DEFAULT: 'TO YOU',
   HAPPY_TEXT: 'HAPPY',
   BIRTHDAY_TEXT: 'BIRTHDAY',
 
