@@ -75,7 +75,6 @@ const MemoryDB = {
 };
 
 // Downscale an image (File or ImageBitmap) to max 800px JPEG, mirroring the
-// optimization done before upload in the Android app.
 function imageToDataUrl(source, maxSize = 800) {
   return new Promise((resolve, reject) => {
     const img = new Image();
