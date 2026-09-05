@@ -5,7 +5,7 @@ const C = {
   HAPPY_TEXT: 'HAPPY',
   BIRTHDAY_TEXT: 'BIRTHDAY',
 
-  FINAL_MESSAGE: 'Happy birthday! Once More, Hope you have a great year ahead \uD83D\uDE0A',
+  FINAL_MESSAGE: 'Happy birthday… 🎂 for yesterday!, Hope you have an amazing year ahead 😊',
   EASTER_EGG_MESSAGE: 'You found the secret celebration!',
   EASTER_EGG_A_MESSAGE: 'You discovered another secret...',
   EASTER_EGG_32_MESSAGE: 'You are a Master Balloon Popper!',
