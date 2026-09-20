@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Locked — The Gallery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/gallery.css">
+</head>
+<body>
+<div class="lock-wrap">
+    <div class="lock-card">
+        <div class="lock-emoji">🔒</div>
+        <h1>This page is locked</h1>
+        <p>Enter the code you were given to open this wish.</p>
+
+        {% if request.GET.error == "1" %}
+            <p class="form-error">That code didn't match anything. Try again.</p>
+        {% elif request.GET.error == "locked" %}
+            <p class="form-error">Too many attempts — wait a few minutes and try again.</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'gallery_unlock' %}" class="code-form">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            <input type="text" name="passcode" placeholder="Enter your code" autocomplete="off" required>
+            <button type="submit">Unlock</button>
+        </form>
+        <p class="muted small" style="margin-top:16px;"><a href="/gallery/">← Back to the gallery</a></p>
+    </div>
+</div>
+</body>
+</html>

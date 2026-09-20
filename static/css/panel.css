@@ -1,0 +1,286 @@
+/* ==========================================================================
+   Admin Control Hub (/panel/) Styles
+   ========================================================================== */
+:root {
+  --panel-bg: #0b141a;
+  --panel-card: #111b21;
+  --panel-card-2: #202c33;
+  --panel-border: #222d34;
+  --panel-border-hover: #2a3942;
+  --panel-text: #e9edef;
+  --panel-muted: #8696a0;
+  --panel-accent: #00a884;
+  --panel-accent-glow: rgba(0, 168, 132, 0.18);
+  --panel-danger: #f15c6d;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body.panel-body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--panel-bg);
+  color: var(--panel-text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Header */
+.panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: rgba(17, 27, 33, 0.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.panel-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--panel-text);
+  text-decoration: none;
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: linear-gradient(135deg, #00a884 0%, #005c4b 100%);
+  border-radius: 9px;
+  font-size: 18px;
+  box-shadow: 0 2px 10px var(--panel-accent-glow);
+}
+
+.panel-user-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.user-status {
+  font-size: 13px;
+  color: var(--panel-muted);
+}
+.user-status strong {
+  color: var(--panel-text);
+}
+
+.panel-logout-btn {
+  background: var(--panel-card-2);
+  color: var(--panel-muted);
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.panel-logout-btn:hover {
+  color: var(--panel-danger);
+  border-color: var(--panel-danger);
+  text-decoration: none;
+}
+
+/* Main Container */
+.panel-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.panel-hero {
+  margin-bottom: 28px;
+}
+.panel-hero h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+}
+.panel-hero p {
+  color: var(--panel-muted);
+  font-size: 14px;
+}
+
+/* Metric Pills */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 34px;
+}
+
+.stat-pill {
+  background: var(--panel-card);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.stat-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--panel-accent);
+}
+.stat-val {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--panel-text);
+}
+.stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--panel-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* Section Titles */
+.section-header {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--panel-muted);
+  margin-bottom: 14px;
+}
+
+/* Card Grid */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  margin-bottom: 36px;
+}
+
+.panel-card {
+  background: var(--panel-card);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+}
+.panel-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--panel-accent);
+  box-shadow: 0 12px 32px var(--panel-accent-glow);
+  text-decoration: none;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+.card-icon.chat { background: rgba(0, 168, 132, 0.14); color: #00a884; }
+.card-icon.sim { background: rgba(59, 130, 246, 0.14); color: #3b82f6; }
+.card-icon.memo { background: rgba(124, 58, 237, 0.14); color: #a78bfa; }
+.card-icon.gallery { background: rgba(236, 72, 153, 0.14); color: #f472b6; }
+.card-icon.admin { background: rgba(234, 179, 8, 0.14); color: #eab308; }
+
+.badge-counter {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--panel-accent-glow);
+  color: var(--panel-accent);
+  border: 1px solid var(--panel-accent);
+}
+.badge-purple {
+  background: rgba(124, 58, 237, 0.18);
+  color: #a78bfa;
+  border: 1px solid #7c3aed;
+}
+
+.panel-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--panel-text);
+  margin-bottom: 6px;
+}
+.panel-card p {
+  font-size: 13.5px;
+  color: var(--panel-muted);
+  line-height: 1.5;
+  margin-bottom: 20px;
+  flex: 1;
+}
+
+.card-footer-link {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--panel-accent);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 0.2s ease;
+}
+.panel-card:hover .card-footer-link {
+  gap: 10px;
+}
+
+/* Quick Links Bar */
+.quick-box {
+  background: var(--panel-card);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 20px 24px;
+}
+.quick-chips {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.quick-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--panel-card-2);
+  border: 1px solid var(--panel-border-hover);
+  border-radius: 999px;
+  color: var(--panel-text);
+  font-size: 13px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.quick-chip:hover {
+  border-color: var(--panel-accent);
+  color: var(--panel-accent);
+  text-decoration: none;
+}

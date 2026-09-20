@@ -1,0 +1,170 @@
+{% extends "gallery/edit/base_edit.html" %}
+{% block title %}Overview{% endblock %}
+
+{% block content %}
+<h1>Gallery overview</h1>
+<p class="muted">
+    Asset storage:
+    {% if storage_remote %}
+        Supabase Storage → <code>gallery/&lt;site&gt;/</code> (next to the <code>memos/</code> folder)
+    {% else %}
+        local site folders (Supabase env vars not configured)
+    {% endif %}
+</p>
+
+<section class="card">
+    <div class="card-head">
+        <h2>People</h2>
+        <a class="btn" href="{% url 'galleryedit_person_new' %}">+ Add person</a>
+    </div>
+    <table class="tbl">
+        <thead>
+        <tr>
+            <th>Nick name</th>
+            <th>DOB</th>
+            <th>Number</th>
+            <th>Passcode</th>
+            <th>Chat API Key</th>
+            <th>Sites</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for person in persons %}
+            <tr>
+                <td><strong>{{ person.nick_name }}</strong></td>
+                <td>{{ person.dob|default:"—" }}</td>
+                <td>{{ person.number|default:"—" }}</td>
+                <td><code>{{ person.passcode }}</code></td>
+                <td>
+                    {% if person.api_key %}
+                        <code>{{ person.api_key }}</code>
+                    {% else %}
+                        <span class="muted small">—</span>
+                    {% endif %}
+                </td>
+                <td>{{ person.sites.count }}</td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'galleryedit_person_edit' person.pk %}">Edit</a>
+                        <form method="post" action="{% url 'galleryedit_person_delete' person.pk %}"
+                              onsubmit="return confirm('Delete {{ person.nick_name }}? Their sites become public.');">
+                            {% csrf_token %}
+                            <button type="submit" class="link-danger">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="7" class="muted">No people yet. Add one, set a passcode, then attach sites to them.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="card">
+    <div class="card-head">
+        <h2>Sites</h2>
+        <a class="btn" href="{% url 'galleryedit_site_new' %}">+ Register site</a>
+    </div>
+    <table class="tbl">
+        <thead>
+        <tr>
+            <th>Nick name</th>
+            <th>Folder</th>
+            <th>Person</th>
+            <th>Date</th>
+            <th>Role</th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for site in sites %}
+            <tr>
+                <td><strong>{{ site.nick_name }}</strong></td>
+                <td><code>{{ site.slug }}</code></td>
+                <td>{{ site.person.nick_name|default:"— (public)" }}</td>
+                <td>{{ site.occasion_date|default:"—" }}</td>
+                <td>
+                    {% if site.is_default %}<span class="chip chip-gold">DEFAULT · /gallery</span>{% endif %}
+                    {% if site.is_current %}<span class="chip chip-green">CURRENT · /birthday</span>{% endif %}
+                    {% if not site.is_default and not site.is_current %}<span class="muted">archive</span>{% endif %}
+                </td>
+                <td>
+                    <div class="row-actions">
+                        <a href="{% url 'gallery_site' site.slug %}" target="_blank" rel="noopener">Open</a>
+                        {% if site.person %}
+                            <button type="button" class="btn-share-link" data-url="{{ request.scheme }}://{{ request.get_host }}{{ site.get_share_url }}" onclick="copyShareUrl(this)" title="Copy direct share link (view-only, no chat access)">🔗 Share Link</button>
+                        {% endif %}
+                        <a href="{% url 'galleryedit_site_edit' site.pk %}">Edit</a>
+                        <a href="{% url 'galleryedit_site_assets' site.pk %}">Assets</a>
+                        <form method="post" action="{% url 'galleryedit_site_set_default' site.pk %}"
+                              onsubmit="return confirm('Show “{{ site.nick_name }}” to everyone on /gallery?');">
+                            {% csrf_token %}
+                            <button type="submit">Set /gallery</button>
+                        </form>
+                        <form method="post" action="{% url 'galleryedit_site_set_current' site.pk %}"
+                              onsubmit="return confirm('Serve “{{ site.nick_name }}” on /birthday?');">
+                            {% csrf_token %}
+                            <button type="submit">Set /birthday</button>
+                        </form>
+                        <form method="post" action="{% url 'galleryedit_site_delete' site.pk %}"
+                              onsubmit="return confirm('Unregister “{{ site.nick_name }}”? Its files stay on disk.');">
+                            {% csrf_token %}
+                            <button type="submit" class="link-danger">Delete</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="muted">No sites registered yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {% if unregistered_folders %}
+        <p class="muted small" style="margin-top:14px;">
+            Unregistered folders on disk:
+            {% for folder in unregistered_folders %}<code>{{ folder }}</code> {% endfor %}
+            — <a href="{% url 'galleryedit_site_new' %}">register one</a>
+        </p>
+    {% endif %}
+</section>
+
+<script>
+function copyShareUrl(btn) {
+    const url = btn.getAttribute('data-url');
+    navigator.clipboard.writeText(url).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = '✓ Copied!';
+        btn.style.borderColor = '#00a884';
+        btn.style.color = '#00a884';
+        setTimeout(() => {
+            btn.innerText = originalText;
+            btn.style.borderColor = '';
+            btn.style.color = '';
+        }, 2500);
+    }).catch(() => {
+        prompt('Copy share link:', url);
+    });
+}
+</script>
+<style>
+.btn-share-link {
+    background: rgba(0, 168, 132, 0.12);
+    color: #00a884;
+    border: 1px solid rgba(0, 168, 132, 0.35);
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.btn-share-link:hover {
+    background: #00a884;
+    color: #0b141a;
+}
+</style>
+{% endblock %}
+

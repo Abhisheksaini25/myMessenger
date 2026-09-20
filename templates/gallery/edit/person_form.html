@@ -1,0 +1,49 @@
+{% extends "gallery/edit/base_edit.html" %}
+{% block title %}{% if is_new %}Add person{% else %}Edit {{ person.nick_name }}{% endif %}{% endblock %}
+
+{% block content %}
+<h1>{% if is_new %}Add person{% else %}Edit “{{ person.nick_name }}”{% endif %}</h1>
+<p class="muted">The passcode is the one secret that unlocks this person's sites on /gallery — share it with them.</p>
+
+<div class="card">
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div>
+            {{ form.nick_name.errors }}
+            <label for="{{ form.nick_name.id_for_label }}">Nick name</label>
+            {{ form.nick_name }}
+        </div>
+        <div>
+            {{ form.dob.errors }}
+            <label for="{{ form.dob.id_for_label }}">Date of birth (optional)</label>
+            {{ form.dob }}
+        </div>
+        <div>
+            {{ form.number.errors }}
+            <label for="{{ form.number.id_for_label }}">Number (optional)</label>
+            {{ form.number }}
+        </div>
+        <div>
+            {{ form.passcode.errors }}
+            <label for="{{ form.passcode.id_for_label }}">Passcode (unique)</label>
+            {{ form.passcode }}
+        </div>
+        <div>
+            {{ form.api_key.errors }}
+            <label for="{{ form.api_key.id_for_label }}">Chat API Key (optional)</label>
+            {{ form.api_key }}
+            <datalist id="chat-user-keys">
+                {% for cu in chat_users %}
+                    <option value="{{ cu.api_key }}">{{ cu.display_name }} ({{ cu.user_id }})</option>
+                {% endfor %}
+            </datalist>
+            <p class="muted small" style="margin-top: 4px;">Link an API key (e.g. <code>apk-key-ana-049</code>) to enable live web chat on /gallery when this person unlocks.</p>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">{% if is_new %}Create person{% else %}Save changes{% endif %}</button>
+            <a class="btn-secondary" href="{% url 'galleryedit_home' %}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

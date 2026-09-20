@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="description" content="A cinematic, interactive birthday celebration experience.">
+    <title>Primary Birthday</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Locally vendored HTMX with CDN fallback -->
+    <script src="assets/htmx.min.js"
+        onerror="this.onerror=null; this.src='https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js';"></script>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 0. Ambient Cosmic Deep Blue Background -->
+        <div id="background-layer"></div>
+
+        <!-- 1. Starfield Canvas (Twinkling stars & shooting stars) -->
+        <canvas id="stars-canvas"></canvas>
+
+        <!-- 2. Fireworks Canvas (Rockets, bursts, sparkle trails) -->
+        <canvas id="fireworks-canvas"></canvas>
+
+        <!-- Start / Music Prompt Screen (Filler Page) -->
+        <div id="start-screen" class="start-screen">
+            <div class="start-content">
+                <div id="start-loader-wrapper" class="start-loader-wrapper">
+                    <div class="start-spinner"></div>
+                    <span id="start-loader-text" class="start-loader-text">Loading media...</span>
+                </div>
+                <button id="start-celebration-btn" class="start-music-btn disabled" disabled aria-label="Play Music">
+                    ✦ Play Music ✦
+                </button>
+            </div>
+        </div>
+
+        <!-- 10. Main Interactive Content (Stage Machine) -->
+        <main id="main-content">
+            <!-- Stage 1: Sequential Word Reveal -->
+            <section id="text-reveal-stage" class="stage-container active" aria-live="polite">
+                <div class="birthday-text-group">
+                    <span id="word-happy" class="birthday-word">Happy</span>
+                    <span id="word-primary" class="birthday-word">Primary</span>
+                    <span id="word-birthday" class="birthday-word">Birthday</span>
+                </div>
+            </section>
+
+            <!-- Stage 2: Birthday Cake with Programmatic Flickering Candle Flame -->
+            <section id="cake-stage" class="stage-container hidden" aria-hidden="true">
+                <div id="cake-wrapper" class="interactive-cake">
+                    <img id="cake-img" src="cake.png" alt="Delicious Birthday Cake"
+                        onerror="this.onerror=null; this.src='assets/cake.png';" draggable="false">
+                    <!-- Dynamic Flame Canvas anchored precisely on candle wick -->
+                    <canvas id="flame-canvas"></canvas>
+                </div>
+                <div id="cake-instruction" class="instruction-text">
+                    <span class="sparkle-icon">✦</span>
+                    Just tap on the cake
+                    <span class="sparkle-icon">✦</span>
+                </div>
+            </section>
+
+            <!-- Stage 3: Memory Carousel & Local Gallery -->
+            <section id="carousel-stage" class="stage-container hidden" aria-hidden="true">
+                <div id="secret-message-bar" class="secret-message-bar hidden">
+                    <button id="send-secret-msg-btn" class="glass-btn chat-neon-btn" aria-label="Send a message">
+                        💬 Send Message
+                    </button>
+                </div>
+
+                <div class="carousel-header">
+                    <h2 class="carousel-title">Random Moments</h2>
+                    <p class="carousel-subtitle">A journey through timeless memories</p>
+                </div>
+
+                <div id="carousel-wrapper">
+                    <div id="polaroid-card">
+                        <div class="polaroid-inner">
+                            <div id="carousel-image-container">
+                                <img id="carousel-img-current" class="carousel-photo visible" alt="Current Memory"
+                                    draggable="false">
+                                <img id="carousel-img-next" class="carousel-photo" alt="Next Memory" draggable="false">
+                                <div id="carousel-empty-state" class="empty-state hidden">
+                                    <div class="empty-icon">📷</div>
+                                    <p class="empty-text">Add some memories to make this celebration even more special.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="carousel-controls">
+                    <button id="add-memories-btn" class="glass-btn primary-glow" aria-label="Add memories from device">
+                        <svg class="btn-icon" viewBox="0 0 24 24" width="20" height="20" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14"></path>
+                        </svg>
+                        <span>Add Memories</span>
+                    </button>
+                    <input type="file" id="memory-file-input" accept="image/*" multiple style="display: none;">
+                </div>
+            </section>
+        </main>
+
+        <!-- 20. Confetti Canvas (Above carousel) -->
+        <canvas id="confetti-canvas"></canvas>
+
+        <!-- 30. 3D Glossy Interactive Balloons Canvas (Above carousel) -->
+        <canvas id="balloons-canvas"></canvas>
+
+        <!-- 40. Pointer Gesture Trail & Recognizer Canvas -->
+        <canvas id="gesture-canvas"></canvas>
+
+        <!-- 50. Screen Flash Overlay -->
+        <div id="flash-overlay" aria-hidden="true"></div>
+
+        <!-- 100. HUD & Floating UI Controls -->
+        <header id="ui-controls">
+            <!-- Music Control Button -->
+            <button id="music-toggle-btn" class="glass-btn audio-btn" aria-label="Toggle background music">
+                <span id="music-icon" class="audio-icon">🔊</span>
+                <span id="music-text" class="audio-text">Music ON</span>
+            </button>
+        </header>
+
+        <!-- Easter Egg & Milestone Celebration Modal -->
+        <div id="easter-egg-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+            <div class="modal-card">
+                <div class="modal-sparkles-top">✦ ✦ ✦</div>
+                <h3 id="modal-title" class="modal-title">SECRET DISCOVERED!</h3>
+                <div id="modal-image-container" class="modal-image-container hidden">
+                    <img id="modal-img" src="" alt="Secret Easter Egg" draggable="false">
+                </div>
+                <p id="modal-message" class="modal-message">You found something special!</p>
+                <div class="modal-sparkles-bottom">✦ ✦ ✦</div>
+                <button id="modal-close-btn" class="glass-btn modal-btn">Continue Celebration ✨</button>
+            </div>
+        </div>
+
+        <!-- Secret Message Modal (enabled on 32 balloons) -->
+        <div id="secret-chat-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+            <div class="modal-card chat-modal-card">
+                <div class="modal-sparkles-top">✦ ✦ ✦</div>
+                <h3 class="modal-title">SEND A NOTE</h3>
+                <p class="modal-message">Write a message:</p>
+                <textarea id="secret-chat-input" class="chat-modal-textarea" placeholder="Type your message here..."
+                    rows="3"></textarea>
+                <div class="chat-modal-actions">
+                    <button id="secret-chat-send-btn" class="glass-btn primary-glow chat-submit-btn">Send ✨</button>
+                    <button id="secret-chat-close-btn" class="glass-btn chat-cancel-btn">Cancel</button>
+                </div>
+                <div id="secret-chat-status" class="chat-status-msg hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Background Audio Element -->
+    <audio id="bg-audio" loop preload="auto">
+        <source src="bg.mp3" type="audio/mpeg">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

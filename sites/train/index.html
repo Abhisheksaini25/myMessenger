@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Train Travel</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Dancing+Script:wght@700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="sky"></div>
+    <div id="moon"></div>
+    <div id="rockets-container"></div>
+    
+    <div id="greeting-container" class="hidden">
+        <h1 id="bday-text">Happy Birthday <span id="friend-name">Adarsh</span>!</h1>
+        <p id="bday-subtext">
+            <span>asli</span> <span>birthday</span> <span>kis</span> <span>date</span> <span>ko</span> <span>padta</span> <span>h</span> <span>tera</span>
+        </p>
+    </div>
+
+    <!-- Scratch Image Reveal -->
+    <div id="scratch-wrapper">
+        <div id="scratch-container" class="hidden">
+            <img src="img.png" alt="Birthday Image" id="hidden-img">
+            <canvas id="scratch-canvas"></canvas>
+        </div>
+        <div id="squad-text">Indigo Squad Member, IIT Bombay</div>
+    </div>
+
+    <div id="station-container">
+        <div id="signboard">
+            <div class="sign-pole"></div>
+            <div class="sign-pole right"></div>
+            <div class="sign-board-face">
+                <span class="flicker">Itarsi</span> Jn
+            </div>
+        </div>
+        <div id="platform"></div>
+    </div>
+
+    <div id="track-container">
+        <div id="rails"></div>
+        <div id="sleepers"></div>
+    </div>
+
+    <div id="train-container">
+        <div class="train-wrapper">
+            <!-- Coach 2 (Shatabdi) -->
+            <div class="coach">
+                <div class="coach-roof"></div>
+                <div class="coach-body">
+                    <div class="coach-windows">
+                        <div class="c-window"></div><div class="c-window"></div><div class="c-window"></div><div class="c-window"></div>
+                    </div>
+                </div>
+                <div class="coach-bottom"></div>
+                <div class="wheels">
+                    <div class="wheel-group"><div class="wheel"></div><div class="wheel"></div></div>
+                    <div class="wheel-group"><div class="wheel"></div><div class="wheel"></div></div>
+                </div>
+            </div>
+            <!-- Coach 1 (Shatabdi) -->
+            <div class="coach">
+                <div class="coach-roof"></div>
+                <div class="coach-body">
+                    <div class="coach-windows">
+                        <div class="c-window"></div><div class="c-window"></div><div class="c-window"></div><div class="c-window"></div>
+                    </div>
+                </div>
+                <div class="coach-bottom"></div>
+                <div class="wheels">
+                    <div class="wheel-group"><div class="wheel"></div><div class="wheel"></div></div>
+                    <div class="wheel-group"><div class="wheel"></div><div class="wheel"></div></div>
+                </div>
+            </div>
+            <!-- Engine WAP7 -->
+            <div class="engine">
+                <div class="pantograph">
+                    <div class="panto-arm"></div>
+                </div>
+                <div class="engine-roof"></div>
+                <div class="engine-body">
+                    <div class="engine-window"></div>
+                    <div class="engine-stripe"></div>
+                </div>
+                <div class="engine-bottom"></div>
+                <div class="wheels">
+                    <div class="wheel-group"><div class="wheel"></div><div class="wheel"></div><div class="wheel"></div></div>
+                    <div class="wheel-group"><div class="wheel"></div><div class="wheel"></div><div class="wheel"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="start-screen">
+        <button id="start-btn">Begin Journey</button>
+    </div>
+
+    <audio id="bday-audio" src="song.mp3" preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

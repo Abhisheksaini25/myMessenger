@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clash of Clan Tracker</title>
+    <!-- Google Fonts for Fantasy Theme -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Macondo&display=swap"
+        rel="stylesheet">
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.11"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <audio id="bgm" src="bgm.mp3" loop></audio>
+
+    <div id="app">
+        <!-- Start Screen -->
+        <div id="start-screen" class="active">
+            <div class="shield-icon"></div>
+            <h2>Tap To Begin The Raid</h2>
+        </div>
+
+        <!-- Main Wishing Screen -->
+        <div id="wishing-screen" class="hidden">
+            <div id="night-sky"></div>
+            <canvas id="fireworks-canvas"></canvas>
+
+            <div class="message-container">
+                <h1 class="glow-text">Happy Birthday</h1>
+                <h1 class="glow-text massive">AYUSH</h1>
+                <p class="wish-text">May your storages be full of happiness and your attacks are always 3 star specially
+                    war</p>
+            </div>
+
+            <div id="spark-layer"></div>
+            <div id="troop-layer"></div>
+            <div id="fog-layer"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

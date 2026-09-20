@@ -1,0 +1,358 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peer Chat Permissions — Control Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+    <style>
+        .perm-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 24px;
+        }
+        @media (max-width: 900px) {
+            .perm-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .perm-card {
+            background: var(--panel-card);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .perm-card h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .perm-card p.subtitle {
+            color: var(--panel-muted);
+            font-size: 13.5px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--panel-text);
+            margin-bottom: 8px;
+        }
+        .form-select, .form-input {
+            width: 100%;
+            background: var(--panel-card-2);
+            border: 1px solid var(--panel-border-hover);
+            color: var(--panel-text);
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-select:focus, .form-input:focus {
+            border-color: var(--panel-accent);
+        }
+        .peer-checkbox-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 12px;
+            background: var(--panel-card-2);
+            border-radius: 10px;
+            border: 1px solid var(--panel-border);
+        }
+        .peer-check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .peer-check-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .peer-check-item input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--panel-accent);
+            cursor: pointer;
+        }
+        .peer-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .peer-key {
+            font-size: 11px;
+            color: var(--panel-muted);
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+        .toggle-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13.5px;
+            color: var(--panel-text);
+            cursor: pointer;
+            margin-top: 14px;
+        }
+        .toggle-label input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--panel-accent);
+        }
+        .btn-primary {
+            background: var(--panel-accent);
+            color: #0b141a;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 11px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        .btn-danger-sm {
+            background: rgba(241, 92, 109, 0.15);
+            color: var(--panel-danger);
+            border: 1px solid var(--panel-danger);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-danger-sm:hover {
+            background: var(--panel-danger);
+            color: #fff;
+        }
+        .table-wrap {
+            max-height: 480px;
+            overflow-y: auto;
+        }
+        .link-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+        .link-table th {
+            text-align: left;
+            padding: 10px 12px;
+            color: var(--panel-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--panel-border);
+            position: sticky;
+            top: 0;
+            background: var(--panel-card);
+        }
+        .link-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--panel-border);
+            vertical-align: middle;
+        }
+        .arrow-badge {
+            color: var(--panel-accent);
+            font-weight: bold;
+            padding: 0 4px;
+        }
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13.5px;
+        }
+        .alert-success {
+            background: rgba(0, 168, 132, 0.15);
+            color: #00a884;
+            border: 1px solid #00a884;
+        }
+        .alert-error {
+            background: rgba(241, 92, 109, 0.15);
+            color: var(--panel-danger);
+            border: 1px solid var(--panel-danger);
+        }
+        .back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--panel-muted);
+            font-size: 13px;
+            text-decoration: none;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+        .back-nav:hover {
+            color: var(--panel-accent);
+        }
+    </style>
+</head>
+<body class="panel-body">
+
+    <!-- Header Navigation -->
+    <header class="panel-header">
+        <a href="{% url 'admin_panel' %}" class="panel-brand">
+            <span class="brand-badge">🎛</span>
+            <span>Admin Control Hub</span>
+        </a>
+        <div class="panel-user-area">
+            <a href="{% url 'admin_panel' %}" class="panel-logout-btn" style="border-color: var(--panel-border-hover); color: var(--panel-text);">← Back to Hub</a>
+            <a href="{% url 'admin:logout' %}" class="panel-logout-btn">Log out</a>
+        </div>
+    </header>
+
+    <main class="panel-container">
+        <a href="{% url 'admin_panel' %}" class="back-nav">← Control Hub</a>
+
+        <section class="panel-hero">
+            <h1>🔐 Peer-to-Peer Chat Permissions</h1>
+            <p>Admin whitelist controlling which users are allowed to discover and chat with one another.</p>
+        </section>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-box {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="perm-grid">
+            <!-- Left Column: Configure User's Allowed Peers -->
+            <div class="perm-card">
+                <h2><span>⚙️</span> Manage User Pairing</h2>
+                <p class="subtitle">Select a friend account to configure who they are permitted to converse with.</p>
+
+                <!-- User Selector Form (GET) -->
+                <form method="GET" action="{% url 'admin_peer_permissions' %}" id="userSelectorForm">
+                    <div class="form-group">
+                        <label class="form-label" for="userSelect">Select Friend Account:</label>
+                        <select name="user" id="userSelect" class="form-select" onchange="document.getElementById('userSelectorForm').submit();">
+                            {% for friend in friends %}
+                                <option value="{{ friend.user_id }}" {% if selected_user and selected_user.user_id == friend.user_id %}selected{% endif %}>
+                                    {{ friend.display_name }} ({{ friend.user_id }})
+                                </option>
+                            {% empty %}
+                                <option value="">No active friends found</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+
+                {% if selected_user %}
+                    <form method="POST" action="{% url 'admin_peer_permissions' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="save_permissions">
+                        <input type="hidden" name="user_id" value="{{ selected_user.user_id }}">
+
+                        <div class="form-group">
+                            <label class="form-label">Peers {{ selected_user.display_name }} Can Message:</label>
+                            <div class="peer-checkbox-list">
+                                {% for friend in friends %}
+                                    {% if friend.user_id != selected_user.user_id %}
+                                        <label class="peer-check-item">
+                                            <input type="checkbox" name="allowed_peers" value="{{ friend.user_id }}" {% if friend.user_id in current_allowed_peer_ids %}checked{% endif %}>
+                                            <span class="peer-name">{{ friend.display_name }}</span>
+                                            <span class="peer-key">{{ friend.user_id }}</span>
+                                        </label>
+                                    {% endif %}
+                                {% empty %}
+                                    <p style="color: var(--panel-muted); font-size: 13px;">No other friends available to pair.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <label class="toggle-label">
+                            <input type="checkbox" name="bidirectional" value="1" checked>
+                            <span><strong>Bidirectional link:</strong> Also allow selected peers to initiate chats with {{ selected_user.display_name }}</span>
+                        </label>
+
+                        <button type="submit" class="btn-primary">
+                            <span>💾</span> Save Permissions for {{ selected_user.display_name }}
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <!-- Right Column: Active Permission Links -->
+            <div class="perm-card">
+                <h2><span>🔗</span> Active Peer Links ({{ all_links|length }})</h2>
+                <p class="subtitle">Every direct directional chat channel currently authorized in the system.</p>
+
+                <div class="table-wrap">
+                    <table class="link-table">
+                        <thead>
+                            <tr>
+                                <th>Source User</th>
+                                <th></th>
+                                <th>Allowed Peer</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for link in all_links %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ link.user.display_name }}</strong>
+                                        <div style="font-size: 11px; color: var(--panel-muted);">{{ link.user.user_id }}</div>
+                                    </td>
+                                    <td><span class="arrow-badge">➔</span></td>
+                                    <td>
+                                        <strong>{{ link.peer.display_name }}</strong>
+                                        <div style="font-size: 11px; color: var(--panel-muted);">{{ link.peer.user_id }}</div>
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{% url 'admin_peer_permissions' %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="revoke_link">
+                                            <input type="hidden" name="link_id" value="{{ link.id }}">
+                                            <button type="submit" class="btn-danger-sm" onclick="return confirm('Revoke this chat permission?');">Revoke</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: var(--panel-muted); padding: 30px 10px;">
+                                        No peer-to-peer permissions granted yet.<br>
+                                        <span style="font-size: 12px;">By default, friends can only chat 1-on-1 with the Admin.</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+</body>
+</html>

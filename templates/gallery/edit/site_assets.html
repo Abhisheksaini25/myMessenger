@@ -1,0 +1,72 @@
+{% extends "gallery/edit/base_edit.html" %}
+{% block title %}Assets — {{ site.nick_name }}{% endblock %}
+
+{% block content %}
+<h1>Assets — “{{ site.nick_name }}”</h1>
+<p class="muted">
+    Storage:
+    {% if storage_remote %}
+        Supabase Storage → <code>gallery/{{ site.slug }}/</code>
+    {% else %}
+        local folder <code>backend/sites/{{ site.slug }}/</code> (Supabase env vars not configured)
+    {% endif %}
+    — assets missing on disk are streamed from here automatically.
+</p>
+
+{% if missing %}
+    <div class="inline-alert">
+        ⚠ Referenced by this site's pages but not found anywhere:
+        {% for name in missing %}<code>{{ name }}</code> {% endfor %}
+        — upload them below with <strong>exactly these names</strong>.
+    </div>
+{% endif %}
+
+<section class="card">
+    <div class="card-head"><h2>Upload</h2></div>
+    <form method="post" enctype="multipart/form-data" class="form-grid">
+        {% csrf_token %}
+        <div>
+            <label for="files">Choose one or more files (stored under
+                {% if storage_remote %}<code>gallery/{{ site.slug }}/</code>{% else %}the site folder{% endif %})</label>
+            <input type="file" name="files" id="files" multiple>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">Upload</button>
+        </div>
+    </form>
+</section>
+
+<section class="card">
+    <div class="card-head"><h2>Stored asset files</h2></div>
+    <table class="tbl file-table">
+        <thead>
+        <tr><th>File name</th><th>Also on disk?</th><th></th></tr>
+        </thead>
+        <tbody>
+        {% for name in remote_files %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>{% if name in local_files %}<span class="badge-local">✓ local</span>{% else %}<span class="muted">remote only</span>{% endif %}</td>
+                <td>
+                    <form method="post" action="{% url 'galleryedit_site_asset_delete' site.pk name %}"
+                          onsubmit="return confirm('Delete {{ name }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="link-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="3" class="muted">Nothing stored yet — upload the missing files listed above.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+<section class="card">
+    <div class="card-head"><h2>Files already inside the site folder</h2></div>
+    <p class="muted small">
+        {% for name in local_files %}<code>{{ name }}</code> {% empty %}(folder empty){% endfor %}
+    </p>
+    <p><a href="{% url 'galleryedit_home' %}">← Back to overview</a></p>
+</section>
+{% endblock %}

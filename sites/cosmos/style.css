@@ -1,0 +1,350 @@
+/* =============================================
+   ✨ COSMIC BIRTHDAY — STYLESHEET
+   ============================================= */
+
+/* ---------- Reset & Base ---------- */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* ---------- Entry Overlay ---------- */
+#entry-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    cursor: pointer;
+    transition: opacity 0.8s ease;
+}
+
+#entry-content {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: clamp(15px, 4vw, 20px);
+    letter-spacing: 0.5px;
+}
+
+#entry-content p {
+    margin-top: 16px;
+    opacity: 0.55;
+}
+
+.entry-icon {
+    font-size: clamp(52px, 14vw, 80px);
+    display: block;
+    animation: entryFloat 2.5s ease-in-out infinite;
+    filter: drop-shadow(0 0 22px rgba(255, 220, 100, 0.5));
+}
+
+@keyframes entryFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%      { transform: translateY(-12px) scale(1.07); }
+}
+
+/* ---------- Layer 1: Starfield ---------- */
+#starfield {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+/* ---------- Layer 2: Constellation ---------- */
+#constellation {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 1.2s ease;
+    pointer-events: none;
+}
+
+#constellation.visible {
+    opacity: 1;
+}
+
+/* ---------- Layers 3 & 5: Full-Page Scratches ---------- */
+#fullpage-scratch,
+#second-scratch {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.88);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+
+#fullpage-scratch.visible,
+#second-scratch.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#fullpage-inner,
+#second-inner {
+    position: relative;
+    max-width: 94vw;
+    max-height: 88vh;
+    border-radius: 20px;
+    overflow: hidden;
+    border: 1.5px solid rgba(130, 140, 255, 0.18);
+    box-shadow:
+        0 0 40px rgba(100, 100, 255, 0.3),
+        0 0 80px rgba(130, 100, 255, 0.15),
+        0 0 140px rgba(80, 80, 200, 0.08);
+    transform: scale(0.65);
+    opacity: 0;
+}
+
+#fullpage-scratch.visible #fullpage-inner,
+#second-scratch.visible #second-inner {
+    animation: fullpagePop 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fullpagePop {
+    0%   { transform: scale(0.65); opacity: 0; }
+    70%  { transform: scale(1.03); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+#fullpage-image,
+#second-image {
+    display: block;
+    max-width: 94vw;
+    max-height: 88vh;
+    width: auto;
+    height: auto;
+    border-radius: 20px;
+}
+
+#fullpage-canvas,
+#second-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 20px;
+    cursor: grab;
+    touch-action: none;
+}
+
+#fullpage-canvas:active,
+#second-canvas:active {
+    cursor: grabbing;
+}
+
+#fullpage-hint,
+#second-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: clamp(16px, 5vw, 28px);
+    letter-spacing: 1.2px;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 55;
+    text-shadow:
+        0 0 14px rgba(180, 160, 255, 0.9),
+        0 0 30px rgba(140, 120, 220, 0.5);
+    transition: opacity 0.4s ease;
+}
+
+#fullpage-hint.hidden,
+#second-hint.hidden {
+    opacity: 0;
+}
+
+/* ---------- Layer 4: Settled Images (final view) ---------- */
+#settled-images-wrapper {
+    position: fixed;
+    top: 57%; /* Anchor just below the text to prevent overlap */
+    left: 50%;
+    transform: translate(-50%, 0); /* Grow downwards from top, not from center */
+    z-index: 20;
+    width: 94vw;
+    max-width: 800px; /* Allow wider layout since they are side by side */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+}
+
+#small-image-container {
+    flex: 1;
+    width: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 1.2s ease, flex 1.2s ease;
+    border: 1.5px solid rgba(130, 140, 255, 0.15);
+    box-shadow:
+        0 0 30px rgba(100, 100, 255, 0.25),
+        0 0 60px rgba(130, 100, 255, 0.12),
+        0 0 120px rgba(80, 80, 200, 0.06),
+        inset 0 0 40px rgba(80, 80, 200, 0.05);
+}
+
+/* Second image starts with 0 width so it doesn't take space */
+#second-small-image-container {
+    flex: 0;
+    width: 100%;
+    max-width: 0;
+    border-radius: 18px;
+    overflow: hidden;
+    opacity: 0;
+    margin-right: 0;
+    border: 0px solid transparent;
+    transition: opacity 1.2s ease, max-width 1.2s ease, flex 1.2s ease, margin-right 1.2s ease, border 1.2s ease;
+}
+
+#small-image-container.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#second-small-image-container.visible {
+    opacity: 1;
+    flex: 1;
+    max-width: 50%; /* Expands smoothly horizontally */
+    margin-right: 15px; /* Creates smooth horizontal gap as it expands */
+    border: 1.5px solid rgba(130, 140, 255, 0.15);
+    box-shadow:
+        0 0 30px rgba(100, 100, 255, 0.25),
+        0 0 60px rgba(130, 100, 255, 0.12),
+        0 0 120px rgba(80, 80, 200, 0.06),
+        inset 0 0 40px rgba(80, 80, 200, 0.05);
+    pointer-events: all;
+}
+
+#small-image,
+#small-second {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 45vh;
+    object-fit: cover;
+    border-radius: 18px;
+}
+
+/* ---------- Layer 6: Easter Egg Popup ---------- */
+#easter-egg-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.88);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 1s ease;
+}
+
+#easter-egg-popup.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+#easter-egg-inner {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 24px;
+    border-radius: 20px;
+    background: rgba(15, 16, 37, 0.95);
+    border: 1.5px solid rgba(130, 140, 255, 0.18);
+    box-shadow: 0 0 80px rgba(130, 100, 255, 0.15);
+    overflow-y: auto;
+}
+
+#easter-egg-text {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: clamp(14px, 4vw, 18px);
+    line-height: 1.6;
+    text-align: center;
+    font-family: inherit;
+    min-height: 80px; 
+}
+
+#easter-egg-text span {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#easter-egg-image {
+    max-width: 100%;
+    max-height: 42vh;
+    border-radius: 12px;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity 1s ease;
+}
+
+/* ---------- Responsive tweaks ---------- */
+@media (max-width: 480px) {
+    #settled-images-wrapper {
+        width: 96vw;
+    }
+    #small-image-container,
+    #second-small-image-container {
+        border-radius: 14px;
+    }
+    #small-image, #small-second {
+        border-radius: 14px;
+    }
+    #fullpage-inner, #second-inner {
+        border-radius: 14px;
+    }
+    #fullpage-image,
+    #fullpage-canvas,
+    #second-image,
+    #second-canvas {
+        border-radius: 14px;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    #settled-images-wrapper {
+        max-width: 80vh;
+        top: 55%;
+    }
+    #fullpage-inner, #second-inner {
+        max-height: 92vh;
+    }
+}

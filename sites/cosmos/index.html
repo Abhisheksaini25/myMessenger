@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="A magical cosmic birthday celebration — stars form a birthday wish, followed by an interactive surprise.">
+    <title>⏳ Loading...</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Entry overlay — one tap unlocks audio & starts the journey -->
+    <div id="entry-overlay">
+        <div id="entry-content">
+            <div class="entry-icon">✨</div>
+            <p>Tap to begin</p>
+        </div>
+    </div>
+
+    <!-- Layer 1: Cosmic starfield background (always active) -->
+    <canvas id="starfield" aria-hidden="true"></canvas>
+
+    <!-- Layer 2: Constellation text animation -->
+    <canvas id="constellation" aria-hidden="true"></canvas>
+
+    <!-- Layer 3: Full-page scratch reveal (img.png) -->
+    <div id="fullpage-scratch">
+        <div id="fullpage-inner">
+            <img id="fullpage-image" src="img.png" alt="Birthday Surprise" draggable="false">
+            <canvas id="fullpage-canvas"></canvas>
+            <p id="fullpage-hint">⭐ Scratch here ⭐</p>
+        </div>
+    </div>
+
+    <!-- Layer 5: Second Full-page scratch reveal (photo.jpg) -->
+    <div id="second-scratch">
+        <div id="second-inner">
+            <img id="second-image" src="photo.jpg" alt="Second Surprise" draggable="false">
+            <canvas id="second-canvas"></canvas>
+            <p id="second-hint">⭐ Scratch here ⭐</p>
+        </div>
+    </div>
+
+    <!-- Layer 6: Final Easter Egg Popup -->
+    <div id="easter-egg-popup">
+        <div id="easter-egg-inner">
+            <div id="easter-egg-text"></div>
+            <img id="easter-egg-image" src="final.png" alt="Final Surprise" draggable="false">
+        </div>
+    </div>
+
+    <!-- Layer 4: Final settled view, no scratch needed -->
+    <div id="settled-images-wrapper">
+        <!-- Second image on top -->
+        <div id="second-small-image-container">
+            <img id="small-second" src="photo.jpg" alt="Second Surprise" draggable="false">
+        </div>
+        <!-- First image on bottom -->
+        <div id="small-image-container">
+            <img id="small-image" src="img.png" alt="Birthday Surprise" draggable="false">
+        </div>
+    </div>
+
+    <!-- Background music -->
+    <audio id="bg-music" src="med.mp3" loop preload="auto"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

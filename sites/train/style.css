@@ -1,0 +1,581 @@
+:root {
+    --sky-dark: #090a0f;
+    --sky-light: #1b2735;
+    --track-color: #888;
+    --station-light: #00e5ff;
+    
+    /* Shatabdi Colors */
+    --coach-blue: #2b78c9;
+    --coach-gray: #b0c4de;
+    --coach-dark: #1e3a5f;
+    
+    /* WAP 7 Colors */
+    --engine-white: #f0f0f0;
+    --engine-red: #cc0000;
+    --engine-gray: #555;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: radial-gradient(ellipse at bottom, var(--sky-light) 0%, var(--sky-dark) 100%);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    font-family: 'Montserrat', sans-serif;
+    position: relative;
+    color: white;
+    cursor: crosshair;
+}
+
+/* Sky and Stars */
+#sky {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle infinite alternate;
+}
+
+@keyframes twinkle {
+    0% { opacity: 0.1; transform: scale(0.8); }
+    100% { opacity: 0.8; transform: scale(1.2); box-shadow: 0 0 5px white; }
+}
+
+/* Shooting Stars */
+.shooting-star {
+    position: absolute;
+    width: 2px;
+    height: 120px;
+    background: linear-gradient(to top, rgba(255,255,255,0), rgba(0, 229, 255, 0.8));
+    border-radius: 50%;
+    transform: rotate(-45deg);
+    animation: shoot 1s linear forwards;
+    z-index: 1;
+    pointer-events: none;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+
+@keyframes shoot {
+    0% { transform: translate(0, 0) rotate(-45deg); opacity: 1; }
+    100% { transform: translate(-600px, 600px) rotate(-45deg); opacity: 0; }
+}
+
+#moon {
+    position: absolute;
+    top: 15%;
+    right: 5%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle at 30% 30%, #fffefe, #e0e0e0);
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.4), 0 0 80px rgba(0, 229, 255, 0.2);
+    z-index: 1;
+}
+
+/* Track */
+#track-container {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+    background: transparent;
+    z-index: 10;
+    perspective: 500px;
+}
+
+#rails {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    height: 40px;
+    border-top: 4px solid var(--track-color);
+    border-bottom: 4px solid var(--track-color);
+    z-index: 12;
+    transform: rotateX(60deg);
+}
+
+#sleepers {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    height: 40px;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 40px,
+        #2a1e12 40px,
+        #2a1e12 60px
+    );
+    z-index: 11;
+    transform: rotateX(60deg);
+}
+
+/* Station */
+#station-container {
+    position: absolute;
+    bottom: 60px;
+    right: 15%;
+    width: 280px;
+    height: 250px;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+#platform {
+    width: 100%;
+    height: 25px;
+    background: linear-gradient(to bottom, #777, #333);
+    border-radius: 5px 5px 0 0;
+    border-bottom: 4px solid #222;
+    box-shadow: 0 -2px 15px rgba(0,0,0,0.6);
+}
+
+#signboard {
+    position: relative;
+    width: 200px;
+    height: 100px;
+    margin-bottom: -5px;
+    z-index: 6;
+}
+
+.sign-pole {
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    width: 10px;
+    height: 60px;
+    background: #444;
+    border-left: 2px solid #888;
+}
+
+.sign-pole.right {
+    left: auto;
+    right: 20px;
+}
+
+.sign-board-face {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 55px;
+    background: #00e5ff;
+    border: 4px solid #008b99;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #001f24;
+    font-family: 'Cinzel', serif;
+    font-size: 26px;
+    font-weight: 700;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+    text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+}
+
+.flicker {
+    animation: lightFlicker 5s infinite alternate;
+}
+
+@keyframes lightFlicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% { opacity: 1; text-shadow: 0 0 10px rgba(255,255,255,0.8); }
+    20%, 24%, 55% { opacity: 0.5; text-shadow: none; }
+}
+
+/* CSS Train Container */
+#train-container {
+    position: absolute;
+    bottom: 50px;
+    left: -1000px;
+    z-index: 20;
+    transition: transform 14s cubic-bezier(0.2, 0.1, 0.25, 1);
+}
+
+.train-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+/* Common Train Parts */
+.wheels {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 15px;
+    position: absolute;
+    bottom: -10px;
+}
+
+.wheel-group {
+    display: flex;
+    gap: 2px;
+}
+
+.wheel {
+    width: 18px;
+    height: 18px;
+    background: radial-gradient(circle, #888 30%, #333 70%);
+    border-radius: 50%;
+    border: 2px solid #111;
+    animation: roll 2s linear infinite;
+}
+
+@keyframes roll {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* WAP 7 Engine */
+.engine {
+    width: 140px;
+    height: 90px;
+    position: relative;
+    background: var(--engine-white);
+    border-radius: 10px 30px 5px 5px;
+    border-bottom: 5px solid var(--engine-gray);
+    box-shadow: inset -5px -5px 15px rgba(0,0,0,0.2), 5px 5px 15px rgba(0,0,0,0.5);
+}
+
+.engine-roof {
+    position: absolute;
+    top: -5px;
+    left: 10px;
+    width: 110px;
+    height: 5px;
+    background: var(--engine-gray);
+    border-radius: 5px 5px 0 0;
+}
+
+.pantograph {
+    position: absolute;
+    top: -20px;
+    left: 30px;
+    width: 40px;
+    height: 15px;
+    border-bottom: 2px solid #444;
+}
+
+.panto-arm {
+    position: absolute;
+    bottom: 0;
+    left: 5px;
+    width: 30px;
+    height: 15px;
+    border: 2px solid #555;
+    border-bottom: none;
+    transform: skewX(-20deg);
+}
+
+.engine-window {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 25px;
+    background: #111;
+    border-radius: 5px 10px 5px 5px;
+    border: 2px solid #333;
+    overflow: hidden;
+}
+
+.engine-window::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -10px;
+    width: 20px; height: 100%;
+    background: rgba(255,255,255,0.2);
+    transform: skewX(-20deg);
+}
+
+.engine-stripe {
+    position: absolute;
+    top: 50px;
+    left: 0;
+    width: 100%;
+    height: 12px;
+    background: var(--engine-red);
+}
+
+.engine-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background: var(--engine-gray);
+    border-radius: 0 0 5px 5px;
+}
+
+/* Shatabdi Coaches */
+.coach {
+    width: 220px;
+    height: 90px;
+    position: relative;
+    background: linear-gradient(to bottom, var(--coach-gray) 0%, var(--coach-gray) 25%, var(--coach-blue) 25%, var(--coach-blue) 75%, var(--coach-gray) 75%, var(--coach-gray) 100%);
+    border-radius: 4px;
+    box-shadow: inset 0 -5px 10px rgba(0,0,0,0.2), 3px 5px 15px rgba(0,0,0,0.5);
+}
+
+.coach-roof {
+    position: absolute;
+    top: -4px;
+    left: 2%;
+    width: 96%;
+    height: 4px;
+    background: #888;
+    border-radius: 5px 5px 0 0;
+}
+
+.coach-windows {
+    position: absolute;
+    top: 35px;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    padding: 0 10px;
+}
+
+.c-window {
+    width: 40px;
+    height: 25px;
+    background: #111;
+    border-radius: 4px;
+    border: 2px solid #333;
+    position: relative;
+    overflow: hidden;
+}
+
+.c-window::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -10px;
+    width: 15px; height: 100%;
+    background: rgba(255,255,255,0.15);
+    transform: skewX(-20deg);
+}
+
+.coach-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: #444;
+    border-radius: 0 0 4px 4px;
+}
+
+/* Greeting text */
+#greeting-container {
+    position: absolute;
+    top: 12%;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    z-index: 30;
+    opacity: 0;
+    transition: opacity 2.5s ease-in-out;
+    pointer-events: none;
+}
+
+#greeting-container.visible {
+    opacity: 1;
+}
+
+#bday-text {
+    font-family: 'Dancing Script', cursive;
+    font-size: 7vw;
+    color: #fff;
+    text-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff, 0 0 40px #b000ff, 0 0 80px #b000ff;
+    margin-bottom: 10px;
+    animation: pulseGlow 2s infinite alternate;
+}
+
+#bday-subtext {
+    font-size: 2vw;
+    letter-spacing: 3px;
+    color: #e0f7fa;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.8);
+    font-weight: 600;
+}
+
+#bday-subtext span {
+    opacity: 0;
+    transform: translateY(10px);
+    display: inline-block;
+    margin-right: 5px;
+}
+
+/* Scratch Container */
+#scratch-container {
+    position: absolute;
+    top: 38%; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 280px;
+    height: 280px;
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+    z-index: 40;
+    border-radius: 15px;
+    border: 4px solid #00e5ff;
+    box-shadow: 0 0 30px rgba(0, 229, 255, 0.4), 0 0 20px #b000ff;
+    background-color: #111;
+}
+#scratch-container.visible {
+    opacity: 1;
+}
+#hidden-img {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 40; border-radius: 11px;
+}
+#scratch-canvas {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%; z-index: 41; cursor: pointer; border-radius: 11px;
+}
+
+#squad-text {
+    position: absolute;
+    top: calc(38% + 300px); /* Just below scratch container */
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 1.5vw;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px #00e5ff, 0 0 20px #b000ff;
+    opacity: 0;
+    transition: opacity 1.5s ease-in;
+    z-index: 40;
+    white-space: nowrap;
+}
+#squad-text.visible {
+    opacity: 1;
+}
+
+/* Start Screen */
+#start-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(9, 10, 15, 0.9);
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(8px);
+    transition: opacity 1s;
+}
+
+#start-btn {
+    padding: 15px 40px;
+    font-size: 1.5rem;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
+    color: white;
+    background: transparent;
+    border: 2px solid #00e5ff;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4) inset, 0 0 15px rgba(0, 229, 255, 0.4);
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#start-btn:hover {
+    background: #00e5ff;
+    color: #000;
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.8), 0 0 50px rgba(0, 229, 255, 0.5);
+    transform: scale(1.05);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Rockets / Fireworks */
+#rockets-container {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.rocket {
+    position: absolute;
+    bottom: 0;
+    width: 4px;
+    height: 15px;
+    background: #ffaa00;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #ffaa00, 0 15px 10px #ff3300;
+    animation: shootUp 1.5s ease-out forwards;
+}
+
+@keyframes shootUp {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-70vh) scale(0.5); opacity: 0; }
+}
+
+.explosion-particle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    animation: explode 1s ease-out forwards;
+}
+
+@keyframes explode {
+    0% { transform: translate(0, 0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+}
+
+/* Mouse Trail */
+.mouse-trail {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #00e5ff;
+    border-radius: 50%;
+    pointer-events: none;
+    box-shadow: 0 0 10px #00e5ff, 0 0 20px #b000ff;
+    animation: trailFade 0.6s linear forwards;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes trailFade {
+    0% { opacity: 0.8; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #bday-text { font-size: 10vw; }
+    #bday-subtext { font-size: 4vw; }
+    #station-container { right: 5%; width: 200px; transform: scale(0.8); transform-origin: bottom right; }
+    .train-wrapper { transform: scale(0.6); transform-origin: bottom right; }
+    #scratch-container { width: 220px; height: 220px; }
+    #squad-text { font-size: 4vw; top: calc(38% + 240px); }
+}

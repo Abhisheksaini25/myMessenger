@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Akushiki</title>
+<style>
+  :root{--bg1:#0f172a;--bg2:#0b2545;--accent:#ff6b6b;}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;background:radial-gradient(circle at 10% 10%,rgba(255,255,255,0.02),transparent 5%),linear-gradient(135deg,var(--bg1),var(--bg2));color:#fff;-webkit-font-smoothing:antialiased;}
+  .wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:28px;box-sizing:border-box;position:relative;overflow:hidden;}
+  h1{font-size:clamp(26px,6vw,48px);margin:0;text-align:center;text-shadow:0 6px 24px rgba(0,0,0,0.6);}
+  h1 .pop{display:inline-block;transform-origin:center;animation:pop 2.8s ease-in-out infinite;}
+  @keyframes pop{0%{transform:translateY(0) scale(1)}25%{transform:translateY(-6px) scale(1.03)}50%{transform:translateY(0) scale(1)}75%{transform:translateY(-3px) scale(1.01)}100%{transform:translateY(0) scale(1)}}
+  p.lead{margin:6px 0 0;font-size:clamp(14px,2.2vw,18px);opacity:0.95;text-align:center;}
+  .controls{display:flex;gap:12px;align-items:center;background:linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.015));padding:10px 12px;border-radius:12px;box-shadow:0 4px 18px rgba(2,6,23,0.6);}
+  .countdown{font-weight:600;}
+  .progress{width:220px;height:10px;background:rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;}
+  .bar{height:100%;background:linear-gradient(90deg,var(--accent),#ffd166);width:0%;}
+  .status{font-size:12px;opacity:0.9;}
+  #scratch-card{margin-top:16px;text-align:center;z-index:5;width:320px;max-width:90%;transition:transform .6s cubic-bezier(.2,.9,.25,1),opacity .6s;}
+  #scratch-card.hidden{opacity:0;transform:translateY(20px) scale(.98);pointer-events:none;}
+  #scratch-card.showing{opacity:1;transform:none;pointer-events:auto;}
+  #scratch-container{position:relative;display:inline-block;border-radius:12px;overflow:visible;box-shadow:0 8px 36px rgba(8,12,32,0.7);}
+  #hidden-image{display:block;width:320px;height:210px;object-fit:cover;border-radius:12px;user-select:none;}
+  canvas#scratch{position:absolute;inset:0;width:320px;height:210px;border-radius:12px;touch-action:none;}
+  .scratch-hint{font-size:13px;margin-top:8px;opacity:.95;}
+  canvas#fx{position:fixed;left:0;top:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+  .confetti{position:fixed;width:10px;height:14px;z-index:9999;opacity:0.95;will-change:transform,opacity;}
+  .hint{font-size:12px;opacity:.85;margin-top:14px;}
+  #popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);background:#1e293b;padding:20px 28px;border-radius:14px;box-shadow:0 8px 32px rgba(0,0,0,0.6);text-align:center;opacity:0;pointer-events:none;transition:opacity .4s ease,transform .4s ease;}
+  #popup.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto;}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<div class="wrap">
+  <div class="controls" id="controls">
+    <div class="countdown">Wait: <strong id="seconds">21</strong>s</div>
+    <div class="progress"><div id="bar" class="bar"></div></div>
+    <div class="status" id="status">Surprise Loading...</div>
+  </div>
+
+  <h1><span class="pop">🎉 Happy Birthday!</span></h1>
+  <h1><span class="pop">🎆 Aku 🎆</span></h1>
+  <p class="lead">stay for the 
+    <strong>Timer</strong> to unlock the scratch coupon.</p>
+
+  <div id="scratch-card" class="hidden">
+    <h2 style="margin:10px 0 6px;">🎁 Your Surprise Gift</h2>
+    <div id="scratch-container">
+      <img src="https://firebasestorage.googleapis.com/v0/b/musicstream-f65d4.appspot.com/o/aku%2Fhidden.jpeg?alt=media&token=b2b537f0-9a66-4224-b900-443d56c4bef8" id="hidden-image">
+        <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#ff8fab"/><stop offset="1" stop-color="#ffd166"/></linearGradient></defs>
+        <rect width="100%" height="100%" rx="18" fill="url(#g)"/>
+        <text x="50%" y="45%" font-size="48" text-anchor="middle" fill="#2b2b2b" font-weight="700">🎉 Surprise! 🎉</text>
+        <text x="50%" y="62%" font-size="20" text-anchor="middle" fill="#2b2b2b" opacity="0.9">You unlocked a not so secret image</text>
+      </svg>
+      <canvas id="scratch"></canvas>
+    </div>
+    
+  </div>
+
+  <div class="hint">Page change mat karna</div>
+</div>
+
+<!-- Popup at 15 sec -->
+<div id="popup">
+  <p>💡 Surprise unlocked!<br><br>
+     <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank">Click to Scratch</a>
+  </p>
+</div>
+
+<script>
+/* ========= Timer (counts only visible time) ========= */
+const REQUIRED_MS = 21000; //21 sec
+const POPUP_HIDE_MS = 20000; //20 sec
+let accumulated = 0;
+let lastNow = performance.now();
+let revealed = false;
+let popupShown = false;
+let popupHidden = false;
+const secondsEl = document.getElementById('seconds');
+const barEl = document.getElementById('bar');
+const statusEl = document.getElementById('status');
+const scratchCard = document.getElementById('scratch-card');
+const popup = document.getElementById('popup');
+
+function humanSeconds(ms){return Math.ceil(ms/1000);}
+function tick(now){
+  if (!document.hidden){accumulated += Math.max(0, now - lastNow);}
+  lastNow = now;
+  const remaining = Math.max(0, REQUIRED_MS - accumulated);
+  secondsEl.textContent = humanSeconds(remaining);
+  const pct = Math.min(100, (accumulated/REQUIRED_MS)*100);
+  barEl.style.width = pct + '%';
+
+  if (!popupShown && accumulated >= 15000){ // show at 15 sec
+    popup.classList.add('show');
+    popupShown = true;
+  }
+  if (popupShown && !popupHidden && accumulated >= POPUP_HIDE_MS){ // hide at 20 sec
+    popup.classList.remove('show');
+    popupHidden = true;
+  }
+
+  if (document.hidden){statusEl.textContent = 'Paused (tab not visible)';}
+  else {statusEl.textContent = revealed ? 'Unlocked' : 'Timer running';}
+  if (!revealed && accumulated >= REQUIRED_MS){
+    revealed = true;
+    revealScratchCard();
+  }
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+document.addEventListener('visibilitychange', ()=>{ if (!document.hidden) lastNow = performance.now();});
+
+/* ========= Fireworks ========= */
+const fxCanvas=document.getElementById('fx'),fxCtx=fxCanvas.getContext('2d');
+function resizeFx(){fxCanvas.width=innerWidth;fxCanvas.height=innerHeight;}resizeFx();addEventListener('resize',resizeFx);
+let rockets=[],particles=[];const COLORS=['#ff6b6b','#ffd166','#6bfab4','#6bd2ff','#c996ff','#ffe66d'];
+function rand(min,max){return Math.random()*(max-min)+min;}
+function launchRocket(x=rand(innerWidth*0.2,innerWidth*0.8)){rockets.push({x,y:innerHeight+10,vx:rand(-0.8,0.8),vy:rand(-7.5,-9.5),targetY:rand(innerHeight*0.25,innerHeight*0.45),color:COLORS[Math.floor(rand(0,COLORS.length))]});}
+function explode(x,y,color){const c=40+Math.floor(rand(0,40));for(let i=0;i<c;i++){const a=rand(0,Math.PI*2),s=rand(1,6);particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:80+Math.floor(rand(0,60)),color,size:1+Math.random()*2,age:0});}}
+function fxLoop(){
+  fxCtx.globalCompositeOperation='source-over';
+  fxCtx.fillStyle='rgba(2,6,23,0.25)';
+  fxCtx.fillRect(0,0,fxCanvas.width,fxCanvas.height);
+  for(let i=rockets.length-1;i>=0;i--){const r=rockets[i];r.x+=r.vx;r.y+=r.vy;r.vy+=0.12;fxCtx.beginPath();fxCtx.fillStyle=r.color;fxCtx.arc(r.x,r.y,3,0,Math.PI*2);fxCtx.fill();fxCtx.fillStyle='rgba(255,255,255,0.07)';fxCtx.fillRect(r.x-1,r.y+4,2,6);
+    if(r.vy>=0||r.y<=r.targetY){explode(r.x,r.y,r.color);rockets.splice(i,1);}}
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=0.06;p.vx*=0.998;p.vy*=0.999;p.age++;const alpha=Math.max(0,1-p.age/p.life);fxCtx.globalCompositeOperation='lighter';fxCtx.fillStyle=p.color;fxCtx.globalAlpha=alpha;fxCtx.beginPath();fxCtx.arc(p.x,p.y,p.size,0,Math.PI*2);fxCtx.fill();fxCtx.globalAlpha=1;if(p.age>p.life)particles.splice(i,1);}
+  requestAnimationFrame(fxLoop);
+}
+fxLoop();
+setTimeout(()=>{for(let i=0;i<5;i++)setTimeout(()=>launchRocket(innerWidth*0.2+i*innerWidth*0.12),i*140);},200);
+document.addEventListener('pointerdown',e=>{explode(e.clientX,e.clientY,COLORS[Math.floor(rand(0,COLORS.length))]);if(Math.random()>0.5)launchRocket(e.clientX);});
+
+/* ========= Scratch card ========= */
+const scratchCanvas=document.getElementById('scratch');
+const svgImage=document.getElementById('hidden-image');
+function revealScratchCard(){scratchCard.classList.remove('hidden');scratchCard.classList.add('showing');setTimeout(initScratch,180);}
+let sctx,isDown=false,lastPoint=null,percentCheckedAt=0,finished=false;
+function resizeScratch(){const rect=svgImage.getBoundingClientRect();scratchCanvas.width=Math.round(rect.width);scratchCanvas.height=Math.round(rect.height);scratchCanvas.style.width=rect.width+'px';scratchCanvas.style.height=rect.height+'px';sctx=scratchCanvas.getContext('2d');sctx.clearRect(0,0,scratchCanvas.width,scratchCanvas.height);const g=sctx.createLinearGradient(0,0,scratchCanvas.width,scratchCanvas.height);g.addColorStop(0,'#b0b0b0');g.addColorStop(1,'#9e9e9e');sctx.fillStyle=g;sctx.fillRect(0,0,scratchCanvas.width,scratchCanvas.height);sctx.globalCompositeOperation='source-over';sctx.fillStyle='#777';sctx.font=Math.max(14,Math.round(scratchCanvas.width/12))+'px sans-serif';sctx.textAlign='center';sctx.fillText('Scratch to reveal',scratchCanvas.width/2,scratchCanvas.height/2+6);sctx.globalCompositeOperation='destination-out';}
+addEventListener('resize',()=>{if(!scratchCanvas)return;resizeScratch();});
+function initScratch(){resizeScratch();finished=false;scratchCanvas.addEventListener('pointerdown',e=>{isDown=true;lastPoint=getPoint(e);drawDot(lastPoint.x,lastPoint.y);});window.addEventListener('pointermove',onPointerMove);window.addEventListener('pointerup',()=>{isDown=false;lastPoint=null;});scratchCanvas.addEventListener('pointerleave',()=>{isDown=false;lastPoint=null;});scratchCanvas.addEventListener('touchstart',e=>e.preventDefault(),{passive:false});}
+function getPoint(e){const rect=scratchCanvas.getBoundingClientRect();return{x:e.clientX-rect.left,y:e.clientY-rect.top};}
+function onPointerMove(e){if(!isDown||finished)return;const p=getPoint(e);drawLine(lastPoint.x,lastPoint.y,p.x,p.y);lastPoint=p;const now=performance.now();if(now-percentCheckedAt>450){percentCheckedAt=now;checkPercent();}}
+function drawDot(x,y){sctx.beginPath();sctx.arc(x,y,18,0,Math.PI*2);sctx.fill();}
+function drawLine(x1,y1,x2,y2){const dx=x2-x1,dy=y2-y1,dist=Math.hypot(dx,dy),step=6,steps=Math.max(1,Math.floor(dist/step));for(let i=0;i<=steps;i++){const t=i/steps;drawDot(x1+dx*t,y1+dy*t);}}
+function checkPercent(){const tmp=document.createElement('canvas');tmp.width=50;tmp.height=50;const tCtx=tmp.getContext('2d');tCtx.drawImage(scratchCanvas,0,0,tmp.width,tmp.height);const img=tCtx.getImageData(0,0,tmp.width,tmp.height).data;let clear=0;for(let i=3;i<img.length;i+=4){if(img[i]===0)clear++;}const pct=(clear/(tmp.width*tmp.height))*100;if(pct>=60&&!finished){finished=true;onScratchComplete();}}
+function onScratchComplete(){scratchCanvas.style.transition='opacity .9s ease, transform .9s ease';scratchCanvas.style.opacity='0';scratchCanvas.style.transform='scale(1.02)';statusEl.textContent='Unlocked 🎉';setTimeout(()=>{spawnConfetti(80);for(let i=0;i<8;i++)setTimeout(()=>launchRocket(rand(innerWidth*0.2,innerWidth*0.8)),i*80);},120);setTimeout(()=> alert('🎊 Surprise revealed! Enjoy the image 🎊'),700);}
+function spawnConfetti(n){const colors=['#ff6b6b','#ffd166','#6bd2ff','#c996ff','#8bf19c','#ffd98a'];for(let i=0;i<n;i++){const el=document.createElement('div');el.className='confetti';el.style.left=Math.random()*100+'vw';el.style.top='-10vh';el.style.background=colors[Math.floor(Math.random()*colors.length)];el.style.opacity=(0.8+Math.random()*0.2).toString();el.style.width=(8+Math.random()*8)+'px';el.style.height=(10+Math.random()*10)+'px';el.style.borderRadius=(Math.random()*50)+'%';el.style.transform=`rotate(${Math.random()*360}deg)`;const duration=2200+Math.random()*1600;el.style.transition=`transform ${duration}ms cubic-bezier(.2,.9,.25,1), top ${duration}ms linear, opacity ${duration/1.1}ms ease`;document.body.appendChild(el);void el.offsetWidth;el.style.top=(70+Math.random()*30)+'vh';el.style.transform=`translateY(${(200+Math.random()*60)}px) rotate(${Math.random()*720}deg)`;el.style.opacity='0.9';setTimeout(()=>el.remove(),duration+50);}}
+</script>
+</body>
+</html>

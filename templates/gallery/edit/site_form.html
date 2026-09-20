@@ -1,0 +1,56 @@
+{% extends "gallery/edit/base_edit.html" %}
+{% block title %}{% if is_new %}Register site{% else %}Edit {{ site.nick_name }}{% endif %}{% endblock %}
+
+{% block content %}
+<h1>{% if is_new %}Register a site{% else %}Edit “{{ site.nick_name }}”{% endif %}</h1>
+<p class="muted">
+    {% if is_new %}
+        Pick one of the unregistered folders under <code>backend/sites/</code> and give it a nick name,
+        an owner (leave empty for a public site) and a date.
+    {% else %}
+        The folder (<code>{{ site.slug }}</code>) is fixed after registration — edit its metadata below.
+    {% endif %}
+</p>
+
+<div class="card">
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% if is_new %}
+            <div>
+                {{ form.slug.errors }}
+                <label for="{{ form.slug.id_for_label }}">Site folder</label>
+                {{ form.slug }}
+                {{ form.slug.help_text }}
+            </div>
+        {% endif %}
+        <div>
+            {{ form.nick_name.errors }}
+            <label for="{{ form.nick_name.id_for_label }}">Nick name in gallery</label>
+            {{ form.nick_name }}
+        </div>
+        <div>
+            {{ form.person.errors }}
+            <label for="{{ form.person.id_for_label }}">Person (empty = public site)</label>
+            {{ form.person }}
+        </div>
+        <div>
+            {{ form.occasion_date.errors }}
+            <label for="{{ form.occasion_date.id_for_label }}">Date (when the wish was for)</label>
+            {{ form.occasion_date }}
+        </div>
+        <div class="form-check">
+            {{ form.is_default.errors }}
+            <label>{{ form.is_default }} {{ form.is_default.label }} — shown to everyone on /gallery</label>
+        </div>
+        <div class="form-check">
+            {{ form.is_current.errors }}
+            <label>{{ form.is_current }} {{ form.is_current.label }} — served on /birthday</label>
+        </div>
+        <div class="form-actions">
+            <button type="submit" class="btn">{% if is_new %}Register site{% else %}Save changes{% endif %}</button>
+            <a class="btn-secondary" href="{% url 'galleryedit_home' %}">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

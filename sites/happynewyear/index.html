@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waiting for 2026...</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0F0F0F;
+            --text-color: #E0E0E0;
+            --accent-color: #FFD700;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Outfit', sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Waiting Section */
+        #waiting-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            transition: opacity 1s ease-out;
+            z-index: 10;
+        }
+
+        #waiting-text {
+            font-size: 2rem;
+            font-weight: 300;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            max-width: 80%;
+            margin-bottom: 20px;
+        }
+
+        #rick-roll-img {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            display: none;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            animation: pop-in 0.5s ease-out;
+        }
+
+        /* Fake Progress Bar */
+        .progress-wrapper {
+            width: 300px;
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            overflow: visible;
+            /* Allow bar to go outside for 125% effect */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            transition: opacity 0.5s ease;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #FFA500);
+            width: 0%;
+            border-radius: 5px;
+            transition: width 0.5s ease-out;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            position: relative;
+        }
+
+        #progress-label {
+            position: absolute;
+            right: 0;
+            top: -25px;
+            font-size: 0.9rem;
+            color: #FFD700;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+
+        /* Wish Section */
+        #wish-section {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease-in;
+            z-index: 5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background: linear-gradient(135deg, #0a0a2e 0%, #1a0b2e 100%);
+            overflow: hidden;
+        }
+
+        #wish-content {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            user-select: none;
+        }
+
+        h1 {
+            font-size: 5rem;
+            margin: 0;
+            background: linear-gradient(to right, #FFD700, #FFA500, #FF4500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        h2 {
+            font-size: 8rem;
+            margin: 0;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 215, 0, 0.6);
+        }
+
+        p {
+            font-size: 1.5rem;
+            color: #ccc;
+            margin-top: 20px;
+        }
+
+        /* Overlay Canvas */
+        #scratch-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            cursor: pointer;
+            touch-action: none;
+        }
+
+        .cursor-glow {
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            mix-blend-mode: screen;
+            display: none;
+        }
+
+        /* Animations */
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(255, 215, 0, 0.6);
+                transform: scale(1);
+            }
+
+            50% {
+                text-shadow: 0 0 30px rgba(255, 255, 255, 1), 0 0 60px rgba(255, 215, 0, 0.9);
+                transform: scale(1.05);
+            }
+        }
+
+        @keyframes pop-in {
+            0% {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            60% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-pop {
+            animation: pop-in 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .animate-shimmer {
+            background: linear-gradient(to right, #FFD700 20%, #FFF 50%, #FFD700 80%);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite, float 3s ease-in-out infinite;
+        }
+
+        .firework-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Ticker Style */
+        #ticker-container {
+            position: absolute;
+            bottom: 20px;
+            width: 80%;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+            z-index: 15;
+            transition: opacity 0.5s;
+            opacity: 0;
+            /* Hidden initially */
+            pointer-events: none;
+            /* Let clicks pass through if hidden */
+        }
+
+        #ticker-text {
+            font-size: 1.2rem;
+            color: #FFD700;
+            white-space: nowrap;
+            opacity: 0;
+        }
+
+        @keyframes scroll-left {
+            0% {
+                transform: translateX(50vw);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateX(-50vw);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body onclick="handleGlobalClick(event)">
+
+    <!-- Waiting Section -->
+    <div id="waiting-section">
+        <div id="waiting-text">Why did you click the link? There’s nothing here</div>
+
+        <div class="progress-wrapper">
+            <div id="progress-label">0%</div>
+            <div class="progress-container" id="progress-container">
+                <div class="progress-bar" id="fake-progress-bar"></div>
+            </div>
+        </div>
+
+        <img id="rick-roll-img" src="https://media1.tenor.com/m/x8v1oNUOmg4AAAAC/rickroll-roll.gif" alt="Rick Roll">
+    </div>
+
+    <!-- Wish Section -->
+    <div id="wish-section">
+        <div id="wish-content">
+            <h1 class="animate-shimmer">Happy New Year</h1>
+            <h2 style="animation: pulse-glow 2s infinite alternate;">2026</h2>
+            <p class="animate-pop" style="animation-delay: 0.5s;">May your year be as bright as the 2026 logo above</p>
+        </div>
+
+        <!-- Ticker -->
+        <div id="ticker-container">
+            <div id="ticker-text"></div>
+        </div>
+
+        <canvas class="firework-canvas" id="fireworks"></canvas>
+    </div>
+
+    <!-- Scratch Overlay -->
+    <canvas id="scratch-canvas" style="display: none;"></canvas>
+    <div class="cursor-glow" id="cursor-glow"></div>
+
+    <script>
+        // State
+        let clickCount = 0;
+        let timeElapsed = 0;
+        let isWishUnlocked = false;
+        let currentProgress = 0;
+
+        // Constants
+        const TARGET_VALUE = 26;
+
+        // Waiting Logic
+        const waitingText = document.getElementById('waiting-text');
+        const rickImg = document.getElementById('rick-roll-img');
+        const waitingSection = document.getElementById('waiting-section');
+        const fakeProgressBar = document.getElementById('fake-progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const progressLabel = document.getElementById('progress-label');
+
+        // Wish Logic
+        const wishSection = document.getElementById('wish-section');
+        const scratchCanvas = document.getElementById('scratch-canvas');
+        const cursorGlow = document.getElementById('cursor-glow');
+        const tickerContainer = document.getElementById('ticker-container');
+        const tickerText = document.getElementById('ticker-text');
+        const ctx = scratchCanvas.getContext('2d');
+
+        // New Facts List
+        const FACTS = [
+            "Do you know you can always see your nose",
+            "Do you know your tongue never truly rests",
+            "Do you know gravity is always pulling your jaw down",
+            "Do you know you were breathing automatically until you read this",
+            "Do you know you blink without thinking",
+            "Do you know your clothes are touching your skin all the time",
+            "Do you know you produce saliva constantly and swallow it automatically",
+            "Do you know you can’t hum while holding your nose",
+            "Do you know your toes are always touching"
+        ];
+
+        // --- WAITING SECTION LOGIC ---
+
+        // Timer
+        const mainTimer = setInterval(() => {
+            if (isWishUnlocked) return;
+            timeElapsed++;
+            updateWaitingState();
+        }, 1000);
+
+        // Initial fade-in
+        setTimeout(() => waitingText.style.opacity = 1, 100);
+
+        function handleGlobalClick(e) {
+            if (isWishUnlocked) {
+                // Wish Section Click Logic (Fireworks)
+                triggerCelebrationBurst(e);
+            } else {
+                // Waiting Section Click Logic
+                clickCount++;
+
+                // Visual feedback
+                waitingText.style.transform = "scale(1.02)";
+                setTimeout(() => waitingText.style.transform = "scale(1)", 100);
+
+                updateWaitingState();
+            }
+        }
+
+        function updateWaitingState() {
+            if (isWishUnlocked) return;
+
+            let newProgress = Math.max(clickCount, timeElapsed);
+
+            if (newProgress > currentProgress) {
+                currentProgress = newProgress;
+                renderWaitingContent(currentProgress);
+            }
+
+            if (currentProgress >= TARGET_VALUE) {
+                unlockWish();
+            }
+
+            updateFakeProgressBar(Math.max(clickCount, timeElapsed));
+        }
+
+        function renderWaitingContent(progress) {
+            let text = "";
+            let showRick = false;
+
+            if (progress <= 5) {
+                text = "Why did you click the link? There’s nothing here";
+            } else if (progress <= 10) {
+                text = "My wish was already in the link itself it was just surrounded by https, www, and .com";
+            } else if (progress <= 15) {
+                text = "Why are you still here? Are you waiting to be Rick-rolled or something?";
+            } else if (progress <= 20) {
+                text = "You were warned";
+                showRick = true;
+            } else if (progress <= 25) {
+                text = "Still here after being Rick-rolled? I told you there is nothing here";
+            } else {
+                text = "Another Rick roll loading…";
+            }
+
+            // Only update DOM if changed to avoid flicker
+            if (waitingText.innerText !== text) {
+                waitingText.style.opacity = 0;
+                setTimeout(() => {
+                    waitingText.innerText = text;
+                    waitingText.style.opacity = 1;
+                }, 200);
+            }
+
+            if (showRick && rickImg.style.display !== 'block') {
+                rickImg.style.display = 'block';
+            } else if (!showRick && rickImg.style.display === 'block') {
+                rickImg.style.display = 'none';
+            }
+        }
+
+        function updateFakeProgressBar(prog) {
+            let fakePercent = 0;
+            let show = true;
+
+            // Mapping Logic
+            // 0-5 -> 94% slowly
+            // 5-10 -> 94 to 98%
+            // 10-15 -> 98 to 75%
+            // 15-20 -> HIDDEN (Rick Roll Time)
+            // 20-25 -> 75 to 125%
+            // 25+ -> 100%
+
+            if (prog <= 5) {
+                fakePercent = (prog / 5) * 94;
+            } else if (prog <= 10) {
+                fakePercent = 94 + ((prog - 5) / 5) * 4; // 94 -> 98
+            } else if (prog <= 15) {
+                fakePercent = 98 - ((prog - 10) / 5) * 23; // 98 -> 75
+            } else if (prog <= 20) {
+                show = false; // Hide 15-20
+                fakePercent = 75; // Stay at 75 visually if shown
+            } else if (prog <= 25) {
+                show = true;
+                // 20->75, 25->125
+                // Linear interpolation: y = mx + c
+                // m = (125-75)/5 = 10
+                // val = 75 + (prog-20)*10
+                fakePercent = 75 + ((prog - 20) * 10);
+            } else {
+                show = true;
+                fakePercent = 100;
+            }
+
+            // Limit fakePercent visual update if we want, or let it grow
+            // Apply visual changes
+            if (show) {
+                progressContainer.style.opacity = 1;
+                progressLabel.style.opacity = 1;
+            } else {
+                progressContainer.style.opacity = 0;
+                progressLabel.style.opacity = 0;
+            }
+
+            fakeProgressBar.style.width = fakePercent + '%';
+            progressLabel.innerText = Math.round(fakePercent) + '%';
+        }
+
+
+        function unlockWish() {
+            if (isWishUnlocked) return;
+            isWishUnlocked = true;
+
+            if (fakeProgressBar) fakeProgressBar.style.width = '100%';
+            if (progressLabel) progressLabel.innerText = '100%';
+
+            clearInterval(mainTimer);
+
+            setTimeout(() => {
+                waitingSection.style.opacity = 0;
+                setTimeout(() => {
+                    waitingSection.style.display = 'none';
+                    setupWishSection();
+                }, 1000);
+            }, 1500);
+        }
+
+        // --- WISH SECTION LOGIC ---
+
+        function setupWishSection() {
+            wishSection.style.opacity = 1;
+            wishSection.style.pointerEvents = 'auto';
+            scratchCanvas.style.display = 'block';
+
+            // Initialize Canvas
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Draw initial dark overlay
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+
+            initScratchEvents();
+
+            // Ticker Scheduling: Start after 10 seconds constant delay initially
+            setTimeout(startTickerCycle, 10000);
+        }
+
+        // Ticker Logic
+        async function startTickerCycle() {
+            // Show container
+            tickerContainer.style.opacity = 1;
+
+            // Loop through all facts
+            for (let i = 0; i < FACTS.length; i++) {
+                await playTickerFact(FACTS[i]);
+            }
+
+            // Cycle finished
+            tickerContainer.style.opacity = 0;
+
+            // Wait 26 seconds before restarting
+            setTimeout(startTickerCycle, 26000);
+        }
+
+        function playTickerFact(fact) {
+            return new Promise(resolve => {
+                tickerText.innerText = fact;
+                tickerText.style.animation = 'none';
+                tickerText.offsetHeight; // reflow
+                tickerText.style.animation = 'scroll-left 8s linear forwards';
+                setTimeout(() => resolve(), 8000);
+            });
+        }
+
+        // --- EFFECTS & OTHERS ---
+
+        function triggerCelebrationBurst(e) {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            // Center/Click Firework Logic -> Google Style
+            // Colors: Blue, Red, Yellow, Green
+            // Shapes: Circle, crisp explosion
+            confetti({
+                particleCount: 80,
+                startVelocity: 50,
+                spread: 360,
+                origin: { x, y },
+                colors: ['#4285F4', '#DB4437', '#F4B400', '#0F9D58'],
+                shapes: ['circle'],
+                gravity: 1.2, /* High gravity for fast fall */
+                scalar: 0.7,  /* Small particles */
+                drift: 0,
+                ticks: 50,    /* Disappear quickly */
+                disableForReducedMotion: true,
+                zIndex: 999
+            });
+
+            // Side Cannons (Celebration confetti still present)
+            const defaults = { zIndex: 999, spread: 55, startVelocity: 45 };
+            confetti(Object.assign({}, defaults, {
+                particleCount: 30,
+                angle: 60,
+                origin: { x: 0, y: 1 }
+            }));
+            confetti(Object.assign({}, defaults, {
+                particleCount: 30,
+                angle: 120,
+                origin: { x: 1, y: 1 }
+            }));
+        }
+
+        function resizeCanvas() {
+            scratchCanvas.width = window.innerWidth;
+            scratchCanvas.height = window.innerHeight;
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+        }
+
+        function initScratchEvents() {
+            let isDrawing = false;
+            let lastPos = null;
+
+            function getPos(e) {
+                if (e.touches && e.touches.length > 0) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
+                return { x: e.clientX, y: e.clientY };
+            }
+
+            function scratch(e) {
+                const pos = getPos(e);
+
+                cursorGlow.style.display = 'block';
+                cursorGlow.style.left = pos.x + 'px';
+                cursorGlow.style.top = pos.y + 'px';
+
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 60, 0, Math.PI * 2);
+                ctx.fill();
+
+                checkRevealProgress();
+
+                // Scratch sparkles
+                if (Math.random() > 0.5) {
+                    confetti({
+                        particleCount: 2,
+                        spread: 15,
+                        origin: { x: pos.x / window.innerWidth, y: pos.y / window.innerHeight },
+                        colors: ['#FFD700', '#FFA500'],
+                        zIndex: 200,
+                        startVelocity: 10,
+                        ticks: 50
+                    });
+                }
+            }
+
+            scratchCanvas.addEventListener('mousedown', (e) => { isDrawing = true; scratch(e); });
+            window.addEventListener('mouseup', () => isDrawing = false);
+            scratchCanvas.addEventListener('mousemove', (e) => {
+                cursorGlow.style.display = 'block';
+                cursorGlow.style.left = e.clientX + 'px';
+                cursorGlow.style.top = e.clientY + 'px';
+                if (isDrawing) scratch(e);
+            });
+
+            scratchCanvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); }, { passive: false });
+            scratchCanvas.addEventListener('touchmove', (e) => { if (isDrawing) scratch(e); }, { passive: false });
+            window.addEventListener('touchend', () => isDrawing = false);
+        }
+
+        function checkRevealProgress() {
+            this.scratchAmount = (this.scratchAmount || 0) + 1;
+            if (this.scratchAmount > 150) {
+                fullReveal();
+            }
+        }
+
+        let revealed = false;
+        function fullReveal() {
+            if (revealed) return;
+            revealed = true;
+
+            scratchCanvas.style.transition = 'opacity 1s ease';
+            scratchCanvas.style.opacity = 0;
+            cursorGlow.style.display = 'none';
+
+            setTimeout(() => {
+                scratchCanvas.style.display = 'none';
+                startCelebration();
+            }, 1000);
+        }
+
+        function startCelebration() {
+            const duration = 15 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function () {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                const particleCount = 50 * (timeLeft / duration);
+
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+    </script>
+</body>
+
+</html>

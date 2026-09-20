@@ -9,7 +9,8 @@ import json
 from typing import Optional
 from django.contrib.auth.decorators import user_passes_test
 from django.http import HttpRequest, HttpResponse, Http404, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -34,6 +35,51 @@ def admin_required(function=None):
     if function:
         return actual_decorator(function)
     return actual_decorator
+
+
+@admin_required
+def admin_panel_view(request: HttpRequest) -> HttpResponse:
+    """
+    GET /panel/
+
+    Centralized Control Hub for all admin interfaces:
+    - Chat Dashboard (/dashboard/)
+    - Friend Simulator (/dashboard/simulator/)
+    - Internal Memos (/dashboard/internal/)
+    - Gallery Management (/galleryedit/)
+    - Django Admin (/admin/)
+    - Public Portals (/gallery/, /birthday/)
+    """
+    from chat.models import Message, Memo, ChatGroup, PeerChatPermission
+    from gallery.models import GalleryPerson, GallerySite
+
+    active_friends_count = ChatUser.objects.filter(is_active=True).exclude(user_id="admin").count()
+    unread_messages_count = Message.objects.filter(
+        receiver__user_id="admin",
+        seen=False,
+        deleted_by_admin=False,
+    ).count()
+    unread_memos_count = Memo.objects.filter(seen=False).count()
+    sites_count = GallerySite.objects.count()
+    persons_count = GalleryPerson.objects.count()
+    groups_count = ChatGroup.objects.count()
+    permissions_count = PeerChatPermission.objects.count()
+    current_site = GallerySite.objects.filter(is_current=True).first()
+    default_site = GallerySite.objects.filter(is_default=True).first()
+
+    context = {
+        "active_friends_count": active_friends_count,
+        "unread_messages_count": unread_messages_count,
+        "unread_memos_count": unread_memos_count,
+        "sites_count": sites_count,
+        "persons_count": persons_count,
+        "groups_count": groups_count,
+        "permissions_count": permissions_count,
+        "current_site": current_site,
+        "default_site": default_site,
+        "admin_username": request.user.username,
+    }
+    return render(request, "panel/index.html", context)
 
 
 @admin_required
@@ -306,3 +352,178 @@ class BirthdayTrackView(View):
             {"status": "ok", "id": memo.id},
             status=201,
         )
+
+
+# ─────────────────────────────────────────────────────────────
+# Peer Chat Permissions Panel (/panel/permissions/)
+# ─────────────────────────────────────────────────────────────
+
+@admin_required
+def admin_peer_permissions_view(request: HttpRequest) -> HttpResponse:
+    """
+    GET/POST /panel/permissions/
+    Matrix and pairing manager controlling which friends are allowed to message each other.
+    """
+    from django.contrib import messages
+    from chat.models import PeerChatPermission
+
+    friends = ChatUser.objects.filter(is_active=True).exclude(user_id="admin").order_by("display_name")
+    selected_user_id = request.GET.get("user")
+    selected_user = None
+
+    if selected_user_id:
+        selected_user = friends.filter(user_id=selected_user_id).first()
+    if not selected_user and friends.exists():
+        selected_user = friends.first()
+
+    if request.method == "POST":
+        action = request.POST.get("action", "")
+
+        if action == "save_permissions":
+            form_user_id = request.POST.get("user_id")
+            form_user = get_object_or_404(ChatUser, user_id=form_user_id, is_active=True)
+            allowed_peer_ids = request.POST.getlist("allowed_peers")
+            is_bidirectional = request.POST.get("bidirectional") == "1"
+
+            # Remove existing outgoing permissions for this user
+            PeerChatPermission.objects.filter(user=form_user).delete()
+
+            # Create new permissions
+            for peer_id in allowed_peer_ids:
+                peer = ChatUser.objects.filter(user_id=peer_id, is_active=True).first()
+                if peer and peer.pk != form_user.pk:
+                    PeerChatPermission.objects.get_or_create(user=form_user, peer=peer)
+                    if is_bidirectional:
+                        PeerChatPermission.objects.get_or_create(user=peer, peer=form_user)
+
+            messages.success(request, f"Permissions updated for {form_user.display_name}.")
+            return redirect(f"{reverse('admin_peer_permissions')}?user={form_user.user_id}")
+
+        elif action == "revoke_link":
+            link_id = request.POST.get("link_id")
+            PeerChatPermission.objects.filter(id=link_id).delete()
+            messages.success(request, "Permission link revoked.")
+            return redirect("admin_peer_permissions")
+
+    current_allowed_peer_ids = []
+    if selected_user:
+        current_allowed_peer_ids = list(
+            PeerChatPermission.objects.filter(user=selected_user).values_list("peer__user_id", flat=True)
+        )
+
+    all_links = PeerChatPermission.objects.select_related("user", "peer").order_by("-created_at")
+
+    context = {
+        "friends": friends,
+        "selected_user": selected_user,
+        "current_allowed_peer_ids": current_allowed_peer_ids,
+        "all_links": all_links,
+    }
+    return render(request, "panel/permissions.html", context)
+
+
+# ─────────────────────────────────────────────────────────────
+# Group Management Panels (/panel/groups/)
+# ─────────────────────────────────────────────────────────────
+
+@admin_required
+def admin_groups_view(request: HttpRequest) -> HttpResponse:
+    """GET /panel/groups/ — lists all groups with members and metrics."""
+    from chat.models import ChatGroup
+
+    groups = ChatGroup.objects.all().prefetch_related("memberships__user", "messages").order_by("-created_at")
+    context = {"groups": groups}
+    return render(request, "panel/groups_list.html", context)
+
+
+@admin_required
+def admin_group_create_view(request: HttpRequest) -> HttpResponse:
+    """GET/POST /panel/groups/new/ — create group and assign members by API key."""
+    from django.contrib import messages
+    from django.utils.text import slugify
+    from chat.models import ChatGroup, GroupMembership
+
+    friends = ChatUser.objects.filter(is_active=True).exclude(user_id="admin").order_by("display_name")
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        slug = request.POST.get("slug", "").strip() or slugify(name)
+        description = request.POST.get("description", "").strip()
+        member_ids = request.POST.getlist("members")
+
+        if not name or not slug:
+            messages.error(request, "Group name and slug are required.")
+        elif ChatGroup.objects.filter(slug=slug).exists():
+            messages.error(request, f"A group with slug '{slug}' already exists.")
+        else:
+            group = ChatGroup.objects.create(
+                name=name,
+                slug=slug,
+                description=description,
+                is_active=True,
+            )
+            for uid in member_ids:
+                user = ChatUser.objects.filter(user_id=uid, is_active=True).first()
+                if user:
+                    GroupMembership.objects.create(group=group, user=user)
+
+            messages.success(request, f"Group '{group.name}' created with {group.member_count} members.")
+            return redirect("admin_groups")
+
+    return render(request, "panel/group_form.html", {"friends": friends, "is_new": True})
+
+
+@admin_required
+def admin_group_edit_view(request: HttpRequest, slug: str) -> HttpResponse:
+    """GET/POST /panel/groups/<slug>/edit/ — edit group properties and members."""
+    from django.contrib import messages
+    from chat.models import ChatGroup, GroupMembership
+
+    group = get_object_or_404(ChatGroup, slug=slug)
+    friends = ChatUser.objects.filter(is_active=True).exclude(user_id="admin").order_by("display_name")
+
+    if request.method == "POST":
+        name = request.POST.get("name", "").strip()
+        description = request.POST.get("description", "").strip()
+        is_active = request.POST.get("is_active") == "1"
+        member_ids = request.POST.getlist("members")
+
+        if not name:
+            messages.error(request, "Group name cannot be empty.")
+        else:
+            group.name = name
+            group.description = description
+            group.is_active = is_active
+            group.save()
+
+            GroupMembership.objects.filter(group=group).delete()
+            for uid in member_ids:
+                user = ChatUser.objects.filter(user_id=uid, is_active=True).first()
+                if user:
+                    GroupMembership.objects.create(group=group, user=user)
+
+            messages.success(request, f"Group '{group.name}' updated.")
+            return redirect("admin_groups")
+
+    current_member_ids = list(group.memberships.values_list("user__user_id", flat=True))
+    context = {
+        "group": group,
+        "friends": friends,
+        "current_member_ids": current_member_ids,
+        "is_new": False,
+    }
+    return render(request, "panel/group_form.html", context)
+
+
+@admin_required
+def admin_group_delete_view(request: HttpRequest, slug: str) -> HttpResponse:
+    """POST /panel/groups/<slug>/delete/ — delete a group."""
+    from django.contrib import messages
+    from chat.models import ChatGroup
+
+    if request.method == "POST":
+        group = get_object_or_404(ChatGroup, slug=slug)
+        group_name = group.name
+        group.delete()
+        messages.success(request, f"Group '{group_name}' deleted.")
+    return redirect("admin_groups")

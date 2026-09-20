@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Hub — Private Messenger</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+</head>
+<body class="panel-body">
+
+    <!-- Header Navigation -->
+    <header class="panel-header">
+        <a href="{% url 'admin_panel' %}" class="panel-brand">
+            <span class="brand-badge">🎛</span>
+            <span>Admin Control Hub</span>
+        </a>
+        <div class="panel-user-area">
+            <span class="user-status">Logged in as <strong>{{ admin_username }}</strong></span>
+            <a href="{% url 'admin:logout' %}" class="panel-logout-btn">Log out</a>
+        </div>
+    </header>
+
+    <main class="panel-container">
+        <!-- Hero Title -->
+        <section class="panel-hero">
+            <h1>System Overview & Navigation</h1>
+            <p>Direct routing to all administrative consoles, communication dashboards, and content systems.</p>
+        </section>
+
+        <!-- Metric Pills -->
+        <section class="stats-grid">
+            <div class="stat-pill">
+                <span class="stat-val">{{ active_friends_count }}</span>
+                <span class="stat-label">Active Friends</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-val" {% if unread_messages_count > 0 %}style="color: #00a884;"{% endif %}>{{ unread_messages_count }}</span>
+                <span class="stat-label">Unread Messages</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-val" {% if unread_memos_count > 0 %}style="color: #a78bfa;"{% endif %}>{{ unread_memos_count }}</span>
+                <span class="stat-label">Pending Memos / Events</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-val">{{ groups_count }}</span>
+                <span class="stat-label">Group Chats</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-val">{{ permissions_count }}</span>
+                <span class="stat-label">Peer-to-Peer Links</span>
+            </div>
+            <div class="stat-pill">
+                <span class="stat-val">{{ sites_count }}</span>
+                <span class="stat-label">Wish Sites ({{ persons_count }} People)</span>
+            </div>
+        </section>
+
+        <!-- Primary Admin Consoles -->
+        <div class="section-header">Administrative Dashboards</div>
+        <section class="card-grid">
+
+            <!-- 1. Live Chat Dashboard -->
+            <a href="{% url 'dashboard_home' %}" class="panel-card">
+                <div class="card-top">
+                    <div class="card-icon chat">💬</div>
+                    {% if unread_messages_count > 0 %}
+                        <span class="badge-counter">{{ unread_messages_count }} unread</span>
+                    {% endif %}
+                </div>
+                <h3>Chat Dashboard</h3>
+                <p>WhatsApp Web-style interface for live one-to-one messaging with active friends, equipped with search and 3-second live polling.</p>
+                <div class="card-footer-link">Open Chat Dashboard →</div>
+            </a>
+
+            <!-- 2. Group Chat Manager -->
+            <a href="{% url 'admin_groups' %}" class="panel-card">
+                <div class="card-top">
+                    <div class="card-icon group" style="background: rgba(16, 185, 129, 0.14); color: #10b981;">👥</div>
+                    <span class="badge-counter" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: #10b981;">{{ groups_count }} groups</span>
+                </div>
+                <h3>Group Chat Manager</h3>
+                <p>Create and manage group chats, assign members using friend API keys, configure broadcast settings, and view group threads.</p>
+                <div class="card-footer-link" style="color: #10b981;">Manage Groups →</div>
+            </a>
+
+            <!-- 3. Peer Permissions Manager -->
+            <a href="{% url 'admin_peer_permissions' %}" class="panel-card">
+                <div class="card-top">
+                    <div class="card-icon perm" style="background: rgba(245, 158, 11, 0.14); color: #f59e0b;">🔐</div>
+                    <span class="badge-counter" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border-color: #f59e0b;">{{ permissions_count }} active links</span>
+                </div>
+                <h3>Peer-to-Peer Permissions</h3>
+                <p>Control exactly which users can see and message other users. Strict admin whitelist ensuring friends only converse with approved peers.</p>
+                <div class="card-footer-link" style="color: #f59e0b;">Configure Permissions →</div>
+            </a>
+
+            <!-- 4. Friend POV Simulator -->
+            <a href="{% url 'dashboard_simulator' %}" class="panel-card">
+                <div class="card-top">
+                    <div class="card-icon sim">📱</div>
+                </div>
+                <h3>Friend POV Simulator</h3>
+                <p>Smartphone simulator allowing you to experience, test, and preview the mobile Android messaging experience as any friend.</p>
+                <div class="card-footer-link">Launch Simulator →</div>
+            </a>
+
+            <!-- 5. Internal Notes & Live Tracker -->
+            <a href="{% url 'memo_dashboard' %}" class="panel-card">
+                <div class="card-top">
+                    <div class="card-icon memo">📋</div>
+                    {% if unread_memos_count > 0 %}
+                        <span class="badge-counter badge-purple">{{ unread_memos_count }} new</span>
+                    {% endif %}
+                </div>
+                <h3>Internal Notes & Tracker</h3>
+                <p>Private admin inbox for one-way incoming notes from Android users and live interaction tracking events from celebration sites.</p>
+                <div class="card-footer-link" style="color: #a78bfa;">View Notes Feed →</div>
+            </a>
+
+            <!-- 6. Gallery & Celebration Manager -->
+            <a href="{% url 'galleryedit_home' %}" class="panel-card">
+                <div class="card-top">
+                    <div class="card-icon gallery">🎀</div>
+                    <span class="badge-counter" style="background: rgba(236, 72, 153, 0.15); color: #f472b6; border-color: #ec4899;">{{ sites_count }} sites</span>
+                </div>
+                <h3>Gallery & Wish Manager</h3>
+                <p>Register celebration microsites, manage people, unique passcodes, Chat API keys, and Supabase cloud asset storage.</p>
+                <div class="card-footer-link" style="color: #f472b6;">Manage Gallery →</div>
+            </a>
+
+            <!-- 7. Django Admin Portal -->
+            <a href="{% url 'admin:index' %}" class="panel-card">
+                <div class="card-top">
+                    <div class="card-icon admin">⚙️</div>
+                </div>
+                <h3>Django Admin Panel</h3>
+                <p>Low-level database administration: browse tables, manage user credentials, sessions, and raw database records.</p>
+                <div class="card-footer-link" style="color: #eab308;">Open Django Admin →</div>
+            </a>
+
+        </section>
+
+        <!-- Quick Access to Public Portals -->
+        <div class="section-header">Live Public Portals</div>
+        <section class="quick-box">
+            <p style="font-size: 13.5px; color: var(--panel-muted);">Jump directly into client-facing web experiences:</p>
+            <div class="quick-chips">
+                <a href="{% url 'gallery_home' %}" class="quick-chip" target="_blank" rel="noopener">
+                    <span>🎀 The Gallery (Archive)</span>
+                    <span style="color: var(--panel-muted); font-size: 11px;">{% if default_site %}{{ default_site.slug }}{% else %}public{% endif %} ↗</span>
+                </a>
+                <a href="{% url 'birthday' %}" class="quick-chip" target="_blank" rel="noopener">
+                    <span>🎂 Birthday Experience</span>
+                    <span style="color: var(--panel-muted); font-size: 11px;">{% if current_site %}{{ current_site.slug }}{% else %}live site{% endif %} ↗</span>
+                </a>
+            </div>
+        </section>
+    </main>
+
+</body>
+</html>

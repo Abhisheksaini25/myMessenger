@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Gallery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/gallery.css">
+</head>
+<body>
+<header class="gallery-topbar">
+    <div class="brand">🎀 The Gallery</div>
+    <div class="topbar-actions">
+        {% if is_admin %}
+            <span class="admin-chip">ADMIN · FULL ACCESS</span>
+            <a class="chip-btn" href="/galleryedit/">Manage</a>
+        {% endif %}
+        {% if chat_enabled %}
+            <button type="button" id="chat-toggle" class="chip-btn chip-btn-chat">
+                💬 Chat
+                <span id="chat-unread-dot" class="unread-dot" hidden></span>
+            </button>
+        {% endif %}
+        <button type="button" id="archive-toggle" class="chip-btn">🗓 Archive</button>
+    </div>
+</header>
+
+<main class="stage">
+    {% if default_site %}
+        <iframe class="site-frame" src="{% url 'gallery_site' default_site.slug %}" title="{{ default_site.nick_name }}" allow="autoplay"></iframe>
+    {% else %}
+        <div class="stage-empty">No default site is set yet — choose one in /galleryedit.</div>
+    {% endif %}
+</main>
+
+<aside id="archive-panel" class="archive-panel" hidden>
+    <div class="panel-head">
+        <h2>Archive</h2>
+        <button type="button" id="archive-close" class="icon-btn" aria-label="Close">✕</button>
+    </div>
+    <div class="panel-body">
+        {% if unlock_error == "1" %}
+            <p class="form-error">That code didn't match anything. Try again.</p>
+        {% elif unlock_error == "locked" %}
+            <p class="form-error">Too many attempts — wait a few minutes and try again.</p>
+        {% endif %}
+
+        {% if is_admin and all_persons %}
+            <h3 class="panel-section">All people (admin)</h3>
+            {% for person in all_persons %}
+                <div class="person-group">
+                    <div class="person-name">{{ person.nick_name }} <span class="muted small">· code: <code>{{ person.passcode }}</code></span></div>
+                    {% for site in person.sites.all %}
+                        <a class="site-card" href="{% url 'gallery_site' site.slug %}" target="_blank" rel="noopener">
+                            <span class="site-title">{{ site.nick_name }}</span>
+                            <span class="site-meta">{{ site.occasion_date|default:"No date" }} · {{ site.slug }}</span>
+                        </a>
+                    {% empty %}
+                        <p class="muted small">No sites registered for this person yet.</p>
+                    {% endfor %}
+                </div>
+            {% empty %}
+                <p class="muted small">No people yet — add them in /galleryedit.</p>
+            {% endfor %}
+        {% endif %}
+
+        {% for person in unlocked_persons %}
+            <h3 class="panel-section">For {{ person.nick_name }} 💌</h3>
+            {% for site in person.sites.all %}
+                <a class="site-card" href="{% url 'gallery_site' site.slug %}" target="_blank" rel="noopener">
+                    <span class="site-title">{{ site.nick_name }}</span>
+                    <span class="site-meta">{{ site.occasion_date|default:"No date" }}</span>
+                </a>
+            {% endfor %}
+        {% endfor %}
+
+        {% if public_sites %}
+            <h3 class="panel-section">Public archive</h3>
+            {% for site in public_sites %}
+                <a class="site-card" href="{% url 'gallery_site' site.slug %}" target="_blank" rel="noopener">
+                    <span class="site-title">{{ site.nick_name }}</span>
+                    <span class="site-meta">{{ site.occasion_date|default:"No date" }} · {{ site.slug }}</span>
+                </a>
+            {% endfor %}
+        {% endif %}
+
+        <details class="code-box" {% if not unlocked_persons and not is_admin %}open{% endif %}>
+            <summary>Have a code?</summary>
+            <form method="post" action="{% url 'gallery_unlock' %}" class="code-form">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ next_url }}">
+                <input type="text" name="passcode" placeholder="Enter your code" autocomplete="off" required>
+                <button type="submit">Unlock</button>
+            </form>
+        </details>
+    </div>
+</aside>
+
+{% if chat_enabled %}
+<aside id="chat-panel" class="chat-panel" hidden>
+    <div class="chat-head">
+        <div class="chat-head-info">
+            <div class="chat-avatar">AD</div>
+            <div>
+                <div class="chat-title">Admin</div>
+                <div class="chat-subtitle">Online • Private Channel</div>
+            </div>
+        </div>
+        <button type="button" id="chat-close" class="icon-btn" aria-label="Close chat">✕</button>
+    </div>
+    <div id="chat-messages" class="chat-messages">
+        <div class="chat-loading">Connecting to private channel...</div>
+    </div>
+    <div class="chat-footer">
+        <form id="chat-form" class="chat-form">
+            <input type="text" id="chat-input" class="chat-input" placeholder="Message Admin..." autocomplete="off" required>
+            <button type="submit" class="chat-send-btn" aria-label="Send">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </form>
+    </div>
+</aside>
+{% endif %}
+
+<script>
+    const archivePanel = document.getElementById('archive-panel');
+    const archiveToggle = document.getElementById('archive-toggle');
+    const archiveClose = document.getElementById('archive-close');
+
+    archiveToggle.addEventListener('click', () => {
+        const willShow = archivePanel.hidden;
+        archivePanel.hidden = !willShow;
+        const chatPanel = document.getElementById('chat-panel');
+        if (willShow && chatPanel && !chatPanel.hidden) {
+            chatPanel.hidden = true;
+        }
+    });
+
+    archiveClose.addEventListener('click', () => {
+        archivePanel.hidden = true;
+    });
+
+    {% if chat_enabled %}
+    const chatPanel = document.getElementById('chat-panel');
+    const chatToggle = document.getElementById('chat-toggle');
+    const chatClose = document.getElementById('chat-close');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatForm = document.getElementById('chat-form');
+    const chatInput = document.getElementById('chat-input');
+    const unreadDot = document.getElementById('chat-unread-dot');
+
+    const currentUserId = "{{ chat_user.user_id|escapejs }}";
+    const currentApiKey = "{{ chat_user.api_key|escapejs }}";
+    let lastMessageCount = 0;
+
+    function escapeHtml(str) {
+        return (str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    async function markMessagesSeen() {
+        try {
+            await fetch('/api/messages/seen/', {
+                method: 'POST',
+                headers: {
+                    'X-USER-ID': currentUserId,
+                    'X-API-KEY': currentApiKey
+                }
+            });
+            if (unreadDot) unreadDot.hidden = true;
+        } catch (e) {
+            // ignore network error
+        }
+    }
+
+    function renderMessages(messages) {
+        if (!messages || messages.length === 0) {
+            chatMessages.innerHTML = '<div class="chat-empty">No messages yet. Send a message to start chatting!</div>';
+            return;
+        }
+
+        const wasScrolledToBottom = (chatMessages.scrollHeight - chatMessages.clientHeight <= chatMessages.scrollTop + 40);
+
+        chatMessages.innerHTML = messages.map(m => {
+            const isMe = (m.sender === currentUserId);
+            const time = m.created_at ? new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+            return `
+                <div class="chat-msg ${isMe ? 'outgoing' : 'incoming'}">
+                    <div>${escapeHtml(m.text)}</div>
+                    <div class="chat-msg-meta">${time}</div>
+                </div>
+            `;
+        }).join('');
+
+        if (wasScrolledToBottom || lastMessageCount === 0) {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        lastMessageCount = messages.length;
+    }
+
+    async function loadMessages() {
+        try {
+            const res = await fetch('/api/messages/', {
+                headers: {
+                    'X-USER-ID': currentUserId,
+                    'X-API-KEY': currentApiKey
+                }
+            });
+            if (!res.ok) throw new Error('API request failed');
+            const messages = await res.json();
+            renderMessages(messages);
+
+            // Check unread messages from admin
+            const hasUnread = messages.some(m => m.sender !== currentUserId && !m.seen);
+            if (!chatPanel.hidden) {
+                if (hasUnread) {
+                    markMessagesSeen();
+                }
+            } else {
+                if (unreadDot) {
+                    unreadDot.hidden = !hasUnread;
+                }
+            }
+        } catch (err) {
+            if (lastMessageCount === 0) {
+                chatMessages.innerHTML = '<div class="chat-loading" style="color: var(--danger);">Unable to connect to chat</div>';
+            }
+        }
+    }
+
+    chatToggle.addEventListener('click', () => {
+        const willShow = chatPanel.hidden;
+        chatPanel.hidden = !willShow;
+        if (willShow) {
+            archivePanel.hidden = true;
+            if (unreadDot) unreadDot.hidden = true;
+            markMessagesSeen();
+            chatInput.focus();
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+    });
+
+    chatClose.addEventListener('click', () => {
+        chatPanel.hidden = true;
+    });
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = chatInput.value.trim();
+        if (!text) return;
+        chatInput.value = '';
+
+        try {
+            const res = await fetch('/api/messages/send/', {
+                method: 'POST',
+                headers: {
+                    'X-USER-ID': currentUserId,
+                    'X-API-KEY': currentApiKey,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ text: text, message_type: 'TEXT' })
+            });
+            if (res.ok) {
+                loadMessages();
+            }
+        } catch (err) {
+            alert('Failed to send message.');
+        }
+    });
+
+    // Initial load and periodic poll
+    loadMessages();
+    setInterval(loadMessages, 3000);
+    {% endif %}
+</script>
+</body>
+</html>

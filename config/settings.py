@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # Custom apps
     "users.apps.UsersConfig",
     "chat.apps.ChatConfig",
+    "gallery.apps.GalleryConfig",
 ]
 
 MIDDLEWARE = [

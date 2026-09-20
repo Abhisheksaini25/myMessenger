@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gallery Editor{% endblock %} — Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/gallery.css">
+</head>
+<body class="edit-body">
+<header class="edit-topbar">
+    <div class="brand">🛠 Gallery Editor</div>
+    <nav class="edit-nav">
+        <a href="{% url 'admin_panel' %}">🎛 Admin Hub</a>
+        <a href="{% url 'galleryedit_home' %}">Overview</a>
+        <a href="{% url 'galleryedit_site_new' %}">Register site</a>
+        <a href="{% url 'galleryedit_person_new' %}">Add person</a>
+        <a href="/dashboard/">Chat dashboard</a>
+        <a href="/gallery/" target="_blank" rel="noopener">View gallery ↗</a>
+    </nav>
+</header>
+<main class="edit-main">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="msg msg-{{ message.tags|default:'info' }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+</main>
+</body>
+</html>

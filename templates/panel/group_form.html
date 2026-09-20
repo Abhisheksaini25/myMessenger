@@ -1,0 +1,294 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if is_new %}Create New Group{% else %}Edit Group {{ group.name }}{% endif %} — Control Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+    <style>
+        .form-card {
+            background: var(--panel-card);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 680px;
+            margin: 20px auto 0;
+        }
+        .form-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-card p.subtitle {
+            color: var(--panel-muted);
+            font-size: 13.5px;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--panel-text);
+            margin-bottom: 8px;
+        }
+        .form-input, .form-textarea {
+            width: 100%;
+            background: var(--panel-card-2);
+            border: 1px solid var(--panel-border-hover);
+            color: var(--panel-text);
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus, .form-textarea:focus {
+            border-color: var(--panel-accent);
+        }
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        .help-text {
+            font-size: 12px;
+            color: var(--panel-muted);
+            margin-top: 6px;
+        }
+        .members-picker {
+            background: var(--panel-card-2);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 12px;
+            max-height: 260px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .member-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .member-option:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .member-option input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--panel-accent);
+            cursor: pointer;
+        }
+        .member-opt-name {
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .member-opt-key {
+            font-size: 11px;
+            color: var(--panel-muted);
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: auto;
+        }
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: var(--panel-text);
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--panel-accent);
+        }
+        .form-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--panel-border);
+        }
+        .btn-cancel {
+            background: var(--panel-card-2);
+            color: var(--panel-muted);
+            border: 1px solid var(--panel-border);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-cancel:hover {
+            color: var(--panel-text);
+            border-color: var(--panel-border-hover);
+            text-decoration: none;
+        }
+        .btn-submit {
+            background: var(--panel-accent);
+            color: #0b141a;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 22px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13.5px;
+        }
+        .alert-error {
+            background: rgba(241, 92, 109, 0.15);
+            color: var(--panel-danger);
+            border: 1px solid var(--panel-danger);
+        }
+        .back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--panel-muted);
+            font-size: 13px;
+            text-decoration: none;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+        .back-nav:hover {
+            color: var(--panel-accent);
+        }
+    </style>
+</head>
+<body class="panel-body">
+
+    <!-- Header Navigation -->
+    <header class="panel-header">
+        <a href="{% url 'admin_panel' %}" class="panel-brand">
+            <span class="brand-badge">🎛</span>
+            <span>Admin Control Hub</span>
+        </a>
+        <div class="panel-user-area">
+            <a href="{% url 'admin_groups' %}" class="panel-logout-btn" style="border-color: var(--panel-border-hover); color: var(--panel-text);">← Back to Groups</a>
+            <a href="{% url 'admin:logout' %}" class="panel-logout-btn">Log out</a>
+        </div>
+    </header>
+
+    <main class="panel-container">
+        <a href="{% url 'admin_groups' %}" class="back-nav">← Back to Groups</a>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-box alert-error">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="form-card">
+            <h2>
+                <span>👥</span>
+                {% if is_new %}Create Group Chat{% else %}Edit Group: {{ group.name }}{% endif %}
+            </h2>
+            <p class="subtitle">
+                {% if is_new %}
+                    Configure the group identity and select member accounts by their friend profile / API key.
+                {% else %}
+                    Update group details and modify member participation.
+                {% endif %}
+            </p>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- Name -->
+                <div class="form-group">
+                    <label class="form-label" for="id_name">Group Name *</label>
+                    <input type="text" id="id_name" name="name" class="form-input" placeholder="e.g. Project Core Team" value="{% if group %}{{ group.name }}{% endif %}" required autofocus>
+                </div>
+
+                <!-- Slug (only editable on create) -->
+                {% if is_new %}
+                    <div class="form-group">
+                        <label class="form-label" for="id_slug">Group Slug (Identifier)</label>
+                        <input type="text" id="id_slug" name="slug" class="form-input" placeholder="e.g. project-core (leave blank to auto-generate)">
+                        <div class="help-text">Unique URL/API slug for this group. Alphanumeric and dashes only.</div>
+                    </div>
+                {% else %}
+                    <div class="form-group">
+                        <label class="form-label">Group Slug</label>
+                        <input type="text" class="form-input" value="{{ group.slug }}" disabled style="opacity: 0.6;">
+                    </div>
+                {% endif %}
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label class="form-label" for="id_desc">Description</label>
+                    <textarea id="id_desc" name="description" class="form-textarea" placeholder="Optional brief description of this group...">{% if group %}{{ group.description }}{% endif %}</textarea>
+                </div>
+
+                <!-- Active Status (on edit) -->
+                {% if not is_new %}
+                    <div class="form-group">
+                        <label class="checkbox-row">
+                            <input type="checkbox" name="is_active" value="1" {% if group.is_active %}checked{% endif %}>
+                            <span><strong>Active Group</strong> (members can see and send messages)</span>
+                        </label>
+                    </div>
+                {% endif %}
+
+                <!-- Members Multi-Select -->
+                <div class="form-group">
+                    <label class="form-label">Assign Group Members (Friends):</label>
+                    <div class="members-picker">
+                        {% for friend in friends %}
+                            <label class="member-option">
+                                <input type="checkbox" name="members" value="{{ friend.user_id }}" {% if current_member_ids and friend.user_id in current_member_ids %}checked{% endif %}>
+                                <span class="member-opt-name">{{ friend.display_name }}</span>
+                                <span class="member-opt-key">{{ friend.user_id }}</span>
+                            </label>
+                        {% empty %}
+                            <p style="color: var(--panel-muted); font-size: 13px;">No active friend accounts found. Add friends in the dashboard first.</p>
+                        {% endfor %}
+                    </div>
+                    <div class="help-text">Checked users will be able to see the group in their contact list and participate in the chat.</div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{% url 'admin_groups' %}" class="btn-cancel">Cancel</a>
+                    <button type="submit" class="btn-submit">
+                        {% if is_new %}Create Group{% else %}Save Changes{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+</body>
+</html>

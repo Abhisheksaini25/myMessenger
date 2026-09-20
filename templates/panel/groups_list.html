@@ -1,0 +1,336 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chats — Control Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/panel.css' %}">
+    <style>
+        .page-header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .btn-create {
+            background: var(--panel-accent);
+            color: #0b141a;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 10px 18px;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .btn-create:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .group-card {
+            background: var(--panel-card);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 22px;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+        .group-card:hover {
+            border-color: var(--panel-border-hover);
+            transform: translateY(-2px);
+        }
+        .group-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .group-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(16, 185, 129, 0.16);
+            color: #10b981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .group-title-box {
+            flex: 1;
+            min-width: 0;
+        }
+        .group-title-box h3 {
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--panel-text);
+            margin-bottom: 2px;
+            word-break: break-word;
+        }
+        .group-slug-badge {
+            font-size: 11px;
+            color: var(--panel-muted);
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .status-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-badge.active {
+            background: rgba(0, 168, 132, 0.15);
+            color: #00a884;
+            border: 1px solid #00a884;
+        }
+        .status-badge.inactive {
+            background: rgba(134, 150, 160, 0.15);
+            color: var(--panel-muted);
+            border: 1px solid var(--panel-muted);
+        }
+        .group-desc {
+            font-size: 13.5px;
+            color: var(--panel-muted);
+            margin-bottom: 16px;
+            line-height: 1.4;
+            flex: 1;
+        }
+        .members-section {
+            background: var(--panel-card-2);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        .members-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--panel-muted);
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .member-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .member-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--panel-text);
+        }
+        .group-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 14px;
+            border-top: 1px solid var(--panel-border);
+            font-size: 12px;
+            color: var(--panel-muted);
+        }
+        .group-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-edit {
+            background: var(--panel-card-2);
+            color: var(--panel-text);
+            border: 1px solid var(--panel-border-hover);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .btn-edit:hover {
+            border-color: var(--panel-accent);
+            color: var(--panel-accent);
+            text-decoration: none;
+        }
+        .btn-del {
+            background: rgba(241, 92, 109, 0.12);
+            color: var(--panel-danger);
+            border: 1px solid var(--panel-danger);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-del:hover {
+            background: var(--panel-danger);
+            color: #fff;
+        }
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13.5px;
+        }
+        .alert-success {
+            background: rgba(0, 168, 132, 0.15);
+            color: #00a884;
+            border: 1px solid #00a884;
+        }
+        .alert-error {
+            background: rgba(241, 92, 109, 0.15);
+            color: var(--panel-danger);
+            border: 1px solid var(--panel-danger);
+        }
+        .back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--panel-muted);
+            font-size: 13px;
+            text-decoration: none;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+        .back-nav:hover {
+            color: var(--panel-accent);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--panel-card);
+            border: 1px dashed var(--panel-border);
+            border-radius: 16px;
+        }
+        .empty-state p {
+            color: var(--panel-muted);
+            margin-bottom: 18px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="panel-body">
+
+    <!-- Header Navigation -->
+    <header class="panel-header">
+        <a href="{% url 'admin_panel' %}" class="panel-brand">
+            <span class="brand-badge">🎛</span>
+            <span>Admin Control Hub</span>
+        </a>
+        <div class="panel-user-area">
+            <a href="{% url 'admin_panel' %}" class="panel-logout-btn" style="border-color: var(--panel-border-hover); color: var(--panel-text);">← Back to Hub</a>
+            <a href="{% url 'admin:logout' %}" class="panel-logout-btn">Log out</a>
+        </div>
+    </header>
+
+    <main class="panel-container">
+        <a href="{% url 'admin_panel' %}" class="back-nav">← Control Hub</a>
+
+        <div class="page-header-row">
+            <div>
+                <h1 style="font-size: 26px; font-weight: 700; margin-bottom: 4px;">👥 Group Chat Manager</h1>
+                <p style="color: var(--panel-muted); font-size: 14px;">Manage group conversations, assign friend members by API key, and configure group threads.</p>
+            </div>
+            <a href="{% url 'admin_group_create' %}" class="btn-create">
+                <span>➕</span> Create New Group
+            </a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert-box {% if message.tags == 'error' %}alert-error{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% if groups %}
+            <div class="groups-grid">
+                {% for group in groups %}
+                    <div class="group-card">
+                        <div class="group-card-header">
+                            <div class="group-avatar">👥</div>
+                            <div class="group-title-box">
+                                <h3>{{ group.name }}</h3>
+                                <span class="group-slug-badge">#{{ group.slug }}</span>
+                            </div>
+                            <span class="status-badge {% if group.is_active %}active{% else %}inactive{% endif %}">
+                                {% if group.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+
+                        <p class="group-desc">
+                            {% if group.description %}
+                                {{ group.description }}
+                            {% else %}
+                                <em>No description provided.</em>
+                            {% endif %}
+                        </p>
+
+                        <div class="members-section">
+                            <div class="members-title">
+                                <span>Members ({{ group.memberships.count }})</span>
+                                <span>{{ group.messages.count }} msgs</span>
+                            </div>
+                            <div class="member-chips">
+                                {% for membership in group.memberships.all %}
+                                    <span class="member-chip" title="API Key: {{ membership.user.user_id }}">
+                                        {{ membership.user.display_name }}
+                                    </span>
+                                {% empty %}
+                                    <span style="font-size: 12px; color: var(--panel-muted);">No members assigned</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="group-footer">
+                            <span>Created {{ group.created_at|date:"M j, Y" }}</span>
+                            <div class="group-actions">
+                                <a href="{% url 'admin_group_edit' group.slug %}" class="btn-edit">Edit</a>
+                                <form method="POST" action="{% url 'admin_group_delete' group.slug %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete group \'{{ group.name }}\'?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-del">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <div style="font-size: 40px; margin-bottom: 12px;">👥</div>
+                <h3 style="font-size: 18px; margin-bottom: 6px;">No Group Chats Yet</h3>
+                <p>Create your first group to enable multi-user conversations between selected friends.</p>
+                <a href="{% url 'admin_group_create' %}" class="btn-create">
+                    <span>➕</span> Create First Group
+                </a>
+            </div>
+        {% endif %}
+    </main>
+
+</body>
+</html>
