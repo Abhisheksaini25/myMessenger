@@ -48,7 +48,7 @@ const OpusBirthdayConstants = {
 
     BALLOON_EASTER_EGG_32_COUNT: 32,
     EASTER_EGG_32_TITLE: "Some more Balloons Popped",
-    EASTER_EGG_32_MESSAGE: "Somehow I ended up with just these two images in a random folder. Should I switch their order?",
+    EASTER_EGG_32_MESSAGE: "Somehow I ended up with just these two weirdly complementing images in a random folder. Should I switch their order or its nice this way?",
     EASTER_EGG_32_IMAGE: "easterimg.png",
 
     // Fireworks Timing (increased frequency)
@@ -1663,7 +1663,7 @@ class BirthdayCelebrationMaster {
                 bg.addEventListener("error", done, { once: true });
                 try {
                     bg.load();
-                } catch (e) {}
+                } catch (e) { }
             });
         };
 
@@ -2116,7 +2116,7 @@ class BirthdayCelebrationMaster {
             // 2. Save in IndexedDB backup
             try {
                 await this.storage.saveMemoryBlob(file, file.name);
-            } catch (e) {}
+            } catch (e) { }
 
             // 3. Post to Supabase Storage via Django API endpoint
             try {
